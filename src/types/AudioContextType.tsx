@@ -1,4 +1,5 @@
-import PlaylistItem from "./PlaylistItem";
+import PlaylistItem from "./PlaylistItemType";
+import PlayOptions from "./PlayOptionType";
 
 interface AudioContextType {
   loop: 0 | 1 | 2;
@@ -8,12 +9,13 @@ interface AudioContextType {
   duration: number;
   playlist: PlaylistItem[];
   currentId: string | null;
-  handlePlayPause: (source?: string) => void;
+  setPlaylist: (Playlist: PlaylistItem[]) => void;
+  handlePlayPause: (option?: PlayOptions) => void;
   handleLoopChange: () => void;
-  handleTimeChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleDragStart: () => void;
-  handleDragEnd: () => void;
-  handleVolumeChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleTimeChange: (event: Event, newValue: number | number[]) => void;
+  handleSeekStart: () => void;
+  handleSeekEnd: () => void;
+  handleVolumeChange: (event: Event, newValue: number | number[]) => void;
   handleSkipForward: () => void;
   handleSkipBackward: () => void;
   handleNextTrack: () => void;

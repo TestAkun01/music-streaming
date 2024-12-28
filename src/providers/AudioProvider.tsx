@@ -2,10 +2,11 @@
 
 import AudioContextType from "@/types/AudioContextType";
 import AudioProviderProps from "@/types/AudioProviderProps";
-import { createContext, useContext, useState, useEffect, useRef } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import { useGlobalAudioPlayer } from "react-use-audio-player";
 import { v4 as uuidv4 } from "uuid";
-import PlaylistItem from "@/types/PlaylistItem";
+import PlaylistItem from "@/types/PlaylistItemType";
+import PlayOptions from "@/types/PlayOptionType";
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
 
@@ -19,20 +20,20 @@ export const useAudioContext = () => {
 
 export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
   const {
-    src,
     duration,
     playing,
     volume,
     setVolume,
     load,
+    stop,
     togglePlayPause,
     seek,
     getPosition,
   } = useGlobalAudioPlayer();
 
   const [currentTime, setCurrentTime] = useState(0);
-  const [dragTime, setDragTime] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
+  const [seekTime, setSeekTime] = useState(0);
+  const [isSeeking, setIsSeeking] = useState(false);
   const [playlist, setPlaylist] = useState<PlaylistItem[]>([]);
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [loop, setLoop] = useState<0 | 1 | 2>(0);
@@ -61,7 +62,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
     }
   };
   useEffect(() => {
-    if (playlist.length > 0 && currentId) {
+    if (currentId) {
       const currentTrack = playlist.find((item) => item.id === currentId);
       if (currentTrack) {
         load(currentTrack.source, {
@@ -70,39 +71,40 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
         });
       }
     }
-  }, [currentId, playlist, trigger]);
+  }, [currentId, trigger]);
 
   useEffect(() => {
-    let animationFrameId: number;
-    const updatePosition = () => {
-      if (!isDragging) {
-        setCurrentTime(getPosition());
+    const intervalId = setInterval(() => {
+      if (!isSeeking) {
+        const currentTimeNow = parseFloat(getPosition().toFixed(2));
+        setCurrentTime(currentTimeNow);
       }
-      animationFrameId = requestAnimationFrame(updatePosition);
-    };
-    animationFrameId = requestAnimationFrame(updatePosition);
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [getPosition, isDragging]);
+    }, 500);
 
-  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTime = Number(e.target.value);
-    setDragTime(newTime);
+    return () => clearInterval(intervalId);
+  }, [isSeeking]);
+
+  const handleTimeChange = (event: Event, newValue: number | number[]) => {
+    console.log(newValue);
+
+    const newTime = newValue as number;
+    setSeekTime(newTime);
     seek(newTime);
     setCurrentTime(newTime);
   };
 
-  const handleDragStart = () => {
-    setIsDragging(true);
-    setDragTime(currentTime);
+  const handleSeekStart = () => {
+    setIsSeeking(true);
+    setSeekTime(currentTime);
   };
 
-  const handleDragEnd = () => {
-    setIsDragging(false);
-    seek(dragTime);
+  const handleSeekEnd = () => {
+    setIsSeeking(false);
+    seek(seekTime);
   };
 
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setVolume(Number(e.target.value) / 100);
+  const handleVolumeChange = (event: Event, newValue: number | number[]) => {
+    setVolume((newValue as number) / 100);
   };
 
   const handleSkipForward = () => {
@@ -129,24 +131,33 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
       playlist[(currentTrackIndex - 1 + playlist.length) % playlist.length];
     setCurrentId(previousTrack.id);
   };
-  const handlePlayPause = (source?: string) => {
-    if (!src) {
-      if (source) {
-        const newTrack = { id: uuidv4(), source };
-        setPlaylist((prevPlaylist) => [...prevPlaylist, newTrack]);
-        setCurrentId(newTrack.id);
-      } else if (playlist.length > 0) {
-        setCurrentId(playlist[0].id);
-      }
-    } else {
-      if (source) {
-        const track = playlist.find((item) => item.source === source);
-        if (track) {
-          setCurrentId(track.id);
-        }
+
+  const handlePlayPause = (options?: PlayOptions) => {
+    if (options?.source) {
+      const filteredTracks = playlist.filter(
+        (item) => item.source === options.source
+      );
+
+      const currentTrack = filteredTracks.find(
+        (track) => track.id === currentId
+      );
+
+      if (currentTrack) {
+        togglePlayPause();
       } else {
+        const newTrack = { id: uuidv4(), source: options.source };
+        setPlaylist([newTrack]);
+        setCurrentId(newTrack.id);
+      }
+    } else if (options?.id) {
+      const track = playlist.find((item) => item.id === options.id);
+
+      if (track) {
+        setCurrentId(track.id);
         togglePlayPause();
       }
+    } else {
+      togglePlayPause();
     }
   };
 
@@ -172,6 +183,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
   const handleClearPlaylist = () => {
     setPlaylist([]);
     setCurrentId(null);
+    stop();
   };
 
   const handleUpdatePlaylistSong = (id: string, newSource: string) => {
@@ -213,11 +225,12 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
         duration,
         playlist,
         currentId,
+        setPlaylist,
         handleLoopChange,
         handlePlayPause,
         handleTimeChange,
-        handleDragStart,
-        handleDragEnd,
+        handleSeekStart,
+        handleSeekEnd,
         handleVolumeChange,
         handleSkipForward,
         handleSkipBackward,

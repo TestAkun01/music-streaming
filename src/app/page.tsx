@@ -1,78 +1,119 @@
 "use client";
 
-import AudioController from "@/components/Audio/AudioPlayer";
+import AudioController from "@/components/Audio/AudioController";
 import Playlist from "@/components/Audio/Playlist";
 import { useAudioContext } from "@/providers/AudioProvider";
-import { useState } from "react";
+import { PlayArrow, Pause, Add, Delete } from "@mui/icons-material";
+import { Button, IconButton, Typography, Box } from "@mui/material";
+
+const dataDummy = ["/audio/song.ogg", "/audio/song2.mp3", "/audio/song3.mp3"];
 
 const Home = () => {
-  const { handlePlayPause, playing, handleAddToPlaylist, playlist } =
-    useAudioContext();
-  const [newAudio, setNewAudio] = useState<string>("");
+  const {
+    handlePlayPause,
+    playing,
+    handleAddToPlaylist,
+    playlist,
+    currentId,
+    handleClearPlaylist,
+  } = useAudioContext();
 
   function handleSetPlaylist() {
-    const newPlaylist = [
-      "/audio/song.ogg",
-      "/audio/song2.mp3",
-      "/audio/song3.mp3",
-    ];
-    newPlaylist.map((source) => handleAddToPlaylist(source));
-    handlePlayPause();
-    console.log("Playlist Set:", newPlaylist);
+    dataDummy.map((source) => handleAddToPlaylist(source));
   }
-
-  function handleAddAudio() {
-    if (newAudio) {
-      handleAddToPlaylist(newAudio);
-      setNewAudio("");
-    }
-  }
-
+  const currentTrack = playlist.find((item) => item.id === currentId);
   return (
-    <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100">
-      <h1 className="text-4xl font-bold text-gray-800">
+    <div className="flex flex-col justify-center items-center min-h-screen bg-gradient-to-r from-blue-500 to-indigo-600 p-8">
+      <Typography variant="h3" className="text-white font-bold mb-4">
         YT Music Tapi Tapi Lebih Ampas
-      </h1>
+      </Typography>
 
-      <button
-        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
-        onClick={() => handlePlayPause("/audio/song.ogg")}>
-        {playing ? "Pause" : "Play"} Test
-      </button>
-
-      <button
-        className="mt-4 px-4 py-2 bg-green-500 text-white rounded"
-        onClick={handleSetPlaylist}>
+      <Button
+        variant="contained"
+        color="secondary"
+        onClick={handleSetPlaylist}
+        className="mb-6"
+        sx={{
+          padding: "12px 24px",
+          backgroundColor: "#1db954", // Warna hijau Spotify
+          "&:hover": {
+            backgroundColor: "#1aa34a",
+          },
+        }}>
         Set Playlist
-      </button>
+      </Button>
 
-      <div className="mt-4 flex items-center gap-2">
-        <input
-          type="text"
-          value={newAudio}
-          onChange={(e) => setNewAudio(e.target.value)}
-          placeholder="Add audio URL"
-          className="p-2 border border-gray-300 rounded"
-        />
-        <button
-          className="px-4 py-2 bg-yellow-500 text-white rounded"
-          onClick={handleAddAudio}>
-          Add to Playlist
-        </button>
-      </div>
-
-      <div className="mt-4">
-        <h3 className="text-lg font-semibold">Current Playlist:</h3>
-        <ul>
+      <Box className="mt-4 w-full max-w-md">
+        <Typography variant="h6" className="text-white mb-2">
+          Current Playlist:
+        </Typography>
+        <ul className="list-none text-white">
           {playlist.map((audio, index) => (
-            <li key={index} className="text-gray-700">
-              {audio.source}
+            <li
+              key={index}
+              className="text-gray-200 mb-2 flex items-center justify-between">
+              <span>{audio.source}</span>
+              <IconButton
+                color="error"
+                onClick={() => handleClearPlaylist()}
+                size="small"
+                aria-label="clear playlist"
+                sx={{ fontSize: "16px" }}>
+                <Delete />
+              </IconButton>
             </li>
           ))}
         </ul>
-      </div>
+      </Box>
+
+      {/* Daftar track dengan tombol Play/Pause */}
+      <Box className="mt-8 w-full max-w-md">
+        {dataDummy.map((source, index) => {
+          // Cek apakah source sedang diputar
+          const isCurrentTrack = currentTrack?.source === source;
+
+          return (
+            <Box
+              key={index}
+              className="flex items-center justify-between p-4 mb-2 bg-gray-800 rounded-lg shadow-md">
+              {/* Tombol Play/Pause */}
+              <IconButton
+                color={isCurrentTrack && playing ? "primary" : "default"}
+                onClick={() => handlePlayPause({ source })}
+                sx={{
+                  borderRadius: "8px",
+                  backgroundColor:
+                    isCurrentTrack && playing ? "#1db954" : "#333",
+                  "&:hover": {
+                    backgroundColor: "#555",
+                  },
+                  padding: "8px",
+                }}>
+                {isCurrentTrack && playing ? <Pause /> : <PlayArrow />}
+              </IconButton>
+
+              {/* Tombol Add to Playlist */}
+              <IconButton
+                color="primary"
+                onClick={() => handleAddToPlaylist(source)}
+                sx={{
+                  borderRadius: "8px",
+                  backgroundColor: "#333",
+                  "&:hover": {
+                    backgroundColor: "#555",
+                  },
+                  padding: "8px",
+                }}>
+                <Add />
+              </IconButton>
+
+              <span className="text-white">{source}</span>
+            </Box>
+          );
+        })}
+      </Box>
+
       <Playlist />
-      <AudioController />
       <AudioController />
     </div>
   );
