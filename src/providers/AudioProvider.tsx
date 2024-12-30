@@ -7,12 +7,15 @@ import {
   useContext,
   useState,
   useEffect,
-  ChangeEvent,
+  useCallback,
+  useRef,
 } from "react";
 import { useGlobalAudioPlayer } from "react-use-audio-player";
 import { v4 as uuidv4 } from "uuid";
 import PlaylistItem from "@/types/PlaylistItemType";
 import PlayOptions from "@/types/PlayOptionType";
+import Track from "@/types/TrackType";
+import { log } from "console";
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
 
@@ -45,54 +48,83 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
   const [loop, setLoop] = useState<0 | 1 | 2>(0);
   const [trigger, setTrigger] = useState(0);
 
-  const handleTrackChange = () => {
-    if (playlist.length === 0 || !currentTrack) return;
+  const playlistRef = useRef(playlist);
+  const loopRef = useRef(loop);
+  const currentTrackRef = useRef(currentTrack);
+  const isSeekingRef = useRef(isSeeking);
 
-    const currentTrackIndex = playlist.findIndex(
-      (item) => item.temporaryId === currentTrack.temporaryId
+  useEffect(() => {
+    playlistRef.current = playlist;
+    loopRef.current = loop;
+    currentTrackRef.current = currentTrack;
+    isSeekingRef.current = isSeeking;
+  }, [playlist, loop, currentTrack, isSeeking]);
+
+  const handleTrackChange = useCallback(() => {
+    const currentPlaylist = playlistRef.current;
+    const currentLoop = loopRef.current;
+    const currentTrackNow = currentTrackRef.current;
+    console.log(currentTrackNow);
+    console.log(currentPlaylist);
+    console.log(currentLoop);
+
+    if (currentPlaylist.length === 0 || !currentTrackNow) return;
+
+    const currentTrackIndex = currentPlaylist.findIndex(
+      (item) => item.temporaryId === currentTrackNow.temporaryId
     );
 
-    switch (loop) {
+    switch (currentLoop) {
       case 0:
-        if (currentTrackIndex < playlist.length - 1) {
-          setCurrentTrack(playlist[currentTrackIndex + 1]);
+        if (currentTrackIndex < currentPlaylist.length - 1) {
+          setCurrentTrack(currentPlaylist[currentTrackIndex + 1]);
+          setTrigger((prev) => prev + 1);
         }
         break;
       case 1:
-        setCurrentTrack(currentTrack);
-        setTrigger((prevTrigger) => prevTrigger + 1);
+        setCurrentTrack(
+          currentPlaylist[(currentTrackIndex + 1) % currentPlaylist.length]
+        );
+        setTrigger((prev) => prev + 1);
         break;
       case 2:
-        setCurrentTrack(playlist[(currentTrackIndex + 1) % playlist.length]);
+        setCurrentTrack(currentTrackNow);
+        setTrigger((prev) => prev + 1);
         break;
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (currentTrack) {
+      let intervalId: NodeJS.Timeout;
+
       load(currentTrack.source, {
         autoplay: true,
-        onend: () => handleTrackChange(),
+        onload: () => {
+          intervalId = setInterval(() => {
+            if (!isSeekingRef.current) {
+              const currentTimeNow = parseFloat(getPosition().toFixed(2));
+              setCurrentTime(currentTimeNow);
+            }
+          }, 500);
+        },
+        onend: handleTrackChange,
       });
+
+      return () => {
+        if (intervalId) {
+          clearInterval(intervalId);
+        }
+      };
     }
-  }, [currentTrack, trigger]);
+  }, [currentTrack?.temporaryId, trigger]);
 
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (!isSeeking) {
-        const currentTimeNow = parseFloat(getPosition().toFixed(2));
-        setCurrentTime(currentTimeNow);
-      }
-    }, 500);
+  // handle Progress Bar Functions
 
-    return () => clearInterval(intervalId);
-  }, [isSeeking]);
-
-  const handleTimeChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const newTime = Number(event.target.value);
-    setSeekTime(newTime);
-    seek(newTime);
-    setCurrentTime(newTime);
+  const handleTimeChange = (time: number) => {
+    setSeekTime(time);
+    seek(time);
+    setCurrentTime(time);
   };
 
   const handleSeekStart = () => {
@@ -105,10 +137,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
     seek(seekTime);
   };
 
-  const handleVolumeChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setVolume(Number(event.target.value) / 100);
-  };
-
+  // handle Playback Functions
   const handleSkipForward = () => {
     const newTime = Math.min(currentTime + 5, duration);
     seek(newTime);
@@ -121,9 +150,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
     setCurrentTime(newTime);
   };
 
-  const handleNextTrack = () => {
-    handleTrackChange();
-  };
+  const handleNextTrack = handleTrackChange;
 
   const handlePreviousTrack = () => {
     const currentTrackIndex = playlist.findIndex(
@@ -134,45 +161,56 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
     setCurrentTrack(previousTrack);
   };
 
-  const handlePlayPause = (options?: PlayOptions) => {
-    if (options?.source) {
+  const handlePlayPause = (
+    options?: PlayOptions,
+    track?: Track | PlaylistItem
+  ) => {
+    if (options?.sourceOrTemporaryId === "source") {
       const filteredTracks = playlist.filter(
-        (item) => item.source === options.source
+        (item) => item.source === track?.source
       );
 
-      const track = filteredTracks.find(
+      const filteredTrack = filteredTracks.find(
         (track) => track.temporaryId === currentTrack?.temporaryId
       );
 
-      if (track) {
+      if (filteredTrack) {
         togglePlayPause();
       } else {
         const newTrack = {
-          id: uuidv4(),
-          source: options.source,
+          ...(track as Track),
           temporaryId: uuidv4(),
         };
         setPlaylist([newTrack]);
         setCurrentTrack(newTrack);
       }
-    } else if (options?.id) {
-      const track = playlist.find((item) => item.id === options.id);
+    } else if (options?.sourceOrTemporaryId === "temporaryId") {
+      const filteredTrack = playlist.find(
+        (item) => item.temporaryId === (track as PlaylistItem).temporaryId!
+      );
 
-      if (track) {
-        setCurrentTrack(track);
-        togglePlayPause();
+      if (filteredTrack) {
+        setCurrentTrack(filteredTrack);
       }
     } else {
       togglePlayPause();
     }
   };
 
+  // Handle Additional Functions
+
   const handleLoopChange = () => {
     setLoop((prevState) => ((prevState + 1) % 3) as 0 | 1 | 2);
   };
+  const handleVolumeChange = (time: number) => {
+    console.log(time);
 
-  const handleAddToPlaylist = (song: string) => {
-    const newTrack = { id: uuidv4(), source: song, temporaryId: uuidv4() };
+    setVolume(time);
+  };
+
+  // Handle Playlist Functions
+  const handleAddToPlaylist = (track: Track) => {
+    const newTrack = { ...track, temporaryId: uuidv4() };
     setPlaylist((prevPlaylist) => [...prevPlaylist, newTrack]);
   };
 
@@ -182,7 +220,9 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
         (item) => item.temporaryId !== temporaryId
       );
       if (temporaryId === currentTrack?.temporaryId) {
-        setCurrentTrack(newPlaylist.length > 0 ? newPlaylist[0] : null);
+        setCurrentTrack(null);
+        setCurrentTime(0);
+        stop();
       }
       return newPlaylist;
     });
@@ -192,37 +232,6 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
     setPlaylist([]);
     setCurrentTrack(null);
     stop();
-  };
-
-  const handleUpdatePlaylistSong = (id: string, newSource: string) => {
-    setPlaylist((prevPlaylist) => {
-      const newPlaylist = prevPlaylist.map((item) =>
-        item.id === id ? { ...item, source: newSource } : item
-      );
-      if (id === currentTrack?.id) {
-        load(newSource, {
-          autoplay: playing,
-          onend: () => handleTrackChange(),
-        });
-      }
-      return newPlaylist;
-    });
-  };
-
-  const handleReorderPlaylist = (fromIndex: number, toIndex: number) => {
-    setPlaylist((prevPlaylist) => {
-      const updatedPlaylist = [...prevPlaylist];
-      const [movedSong] = updatedPlaylist.splice(fromIndex, 1);
-      updatedPlaylist.splice(toIndex, 0, movedSong);
-
-      if (
-        currentTrack?.temporaryId === updatedPlaylist[fromIndex].temporaryId
-      ) {
-        setCurrentTrack(updatedPlaylist[toIndex]);
-      }
-
-      return updatedPlaylist;
-    });
   };
 
   return (
@@ -249,8 +258,6 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
         handleAddToPlaylist,
         handleRemoveFromPlaylist,
         handleClearPlaylist,
-        handleReorderPlaylist,
-        handleUpdatePlaylistSong,
       }}>
       {children}
     </AudioContext.Provider>

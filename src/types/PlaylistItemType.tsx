@@ -1,6 +1,6 @@
-interface PlaylistItem {
-  id: string;
-  source: string;
-  temporaryId?: string;
+import Track from "./TrackType";
+
+interface PlaylistItem extends Track {
+  temporaryId: string;
 }
 export default PlaylistItem;

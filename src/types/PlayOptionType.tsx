@@ -1,6 +1,5 @@
 interface PlayOptions {
-  id?: string;
-  source?: string;
+  sourceOrTemporaryId?: "source" | "temporaryId";
 }
 
 export default PlayOptions;

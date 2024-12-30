@@ -27,18 +27,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${poppins.variable} antialiased bg-gray-900 text-white h-screen overflow-hidden`}>
+      <body className={`${poppins.variable} antialiase  h-screen`}>
         <SessionProvider>
           <AudioProvider>
-            <div className="flex flex-col h-screen">
-              <Navbar />
-              <div className="flex flex-1 overflow-hidden">
-                <LeftMainComponent />
-                <CenterMainComponent>{children}</CenterMainComponent>
-                <RightMainComponent />
+            <div className="flex h-screen bg-zinc-900">
+              <LeftMainComponent />
+              <div className="w-full rounded rounded-s-[28px] bg-zinc-950 overflow-hidden flex flex-col relative">
+                <Navbar />
+                <div className="flex overflow-hidden pb-32">
+                  <CenterMainComponent>{children}</CenterMainComponent>
+                  <RightMainComponent />
+                </div>
+                <AudioController />
               </div>
-              <AudioController />
             </div>
           </AudioProvider>
         </SessionProvider>
