@@ -4,7 +4,6 @@ import GithubProvider from "next-auth/providers/github";
 import { JWT } from "next-auth/jwt";
 import connectToDatabase from "@/lib/mongodb";
 import User from "@/models/User";
-
 const handler = NextAuth({
   providers: [
     GoogleProvider({
@@ -17,8 +16,8 @@ const handler = NextAuth({
     }),
   ],
   pages: {
-    signIn: "/auth", // Halaman kustom login
-    error: "/auth", // Halaman error login (jika ada)
+    signIn: "/auth",
+    error: "/auth",
   },
   secret: process.env.NEXTAUTH_SECRET,
   session: {
@@ -35,9 +34,10 @@ const handler = NextAuth({
           (account.provider === "google" || account.provider === "github")
         ) {
           await connectToDatabase();
-          const existingUser = await User.findOne({ email: user.email });
+          const existingUser = await User.findOne({ id: user.id });
           if (!existingUser) {
             const newUser = new User({
+              id: user.id,
               username: profile?.name || user.name,
               email: user.email,
               profile_picture: profile?.image || "",
@@ -54,28 +54,11 @@ const handler = NextAuth({
         return false;
       }
     },
-    async jwt({
-      token,
-      user,
-      account,
-    }: {
-      token: JWT;
-      user?: any;
-      account?: any;
-    }) {
-      if (user) {
-        token.id = user.id;
-        token.email = user.email;
-        token.name = user.name;
-        token.image = user.image;
-      }
-      return token;
+    async jwt({ token, user }: { token: JWT; user?: any }) {
+      return { ...token, ...user };
     },
     async session({ session, token }: { session: any; token: JWT }) {
-      session.user.id = token.id;
-      session.user.email = token.email;
-      session.user.name = token.name;
-      session.user.image = token.image;
+      session.user = token as JWT;
       return session;
     },
     async redirect({ url, baseUrl }) {

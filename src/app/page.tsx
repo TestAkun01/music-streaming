@@ -1,120 +1,57 @@
 "use client";
 
-import AudioController from "@/components/Audio/AudioController";
-import Playlist from "@/components/Audio/Playlist";
+import { useEffect, useState } from "react";
 import { useAudioContext } from "@/providers/AudioProvider";
-import { PlayArrow, Pause, Add, Delete } from "@mui/icons-material";
-import { Button, IconButton, Typography, Box } from "@mui/material";
-
-const dataDummy = ["/audio/song.ogg", "/audio/song2.mp3", "/audio/song3.mp3"];
 
 const Home = () => {
-  const {
-    handlePlayPause,
-    playing,
-    handleAddToPlaylist,
-    playlist,
-    currentId,
-    handleClearPlaylist,
-  } = useAudioContext();
+  const { handlePlayPause, handleAddToPlaylist, currentTrack, playing } =
+    useAudioContext();
 
-  function handleSetPlaylist() {
-    dataDummy.map((source) => handleAddToPlaylist(source));
-  }
-  const currentTrack = playlist.find((item) => item.id === currentId);
+  const [songs, setSongs] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchSongs = async () => {
+      const fetchedSongs = [
+        { id: 1, title: "Song 1", source: "/audio/song1.ogg" },
+        { id: 2, title: "Song 2", source: "/audio/song2.mp3" },
+        { id: 3, title: "Song 3", source: "/audio/song3.mp3" },
+      ];
+      setSongs(fetchedSongs);
+    };
+
+    fetchSongs();
+  }, []);
+
   return (
-    <div className="flex flex-col justify-center items-center min-h-screen bg-gradient-to-r from-blue-500 to-indigo-600 p-8">
-      <Typography variant="h3" className="text-white font-bold mb-4">
-        YT Music Tapi Tapi Lebih Ampas
-      </Typography>
-
-      <Button
-        variant="contained"
-        color="secondary"
-        onClick={handleSetPlaylist}
-        className="mb-6"
-        sx={{
-          padding: "12px 24px",
-          backgroundColor: "#1db954", // Warna hijau Spotify
-          "&:hover": {
-            backgroundColor: "#1aa34a",
-          },
-        }}>
-        Set Playlist
-      </Button>
-
-      <Box className="mt-4 w-full max-w-md">
-        <Typography variant="h6" className="text-white mb-2">
-          Current Playlist:
-        </Typography>
-        <ul className="list-none text-white">
-          {playlist.map((audio, index) => (
-            <li
-              key={index}
-              className="text-gray-200 mb-2 flex items-center justify-between">
-              <span>{audio.source}</span>
-              <IconButton
-                color="error"
-                onClick={() => handleClearPlaylist()}
-                size="small"
-                aria-label="clear playlist"
-                sx={{ fontSize: "16px" }}>
-                <Delete />
-              </IconButton>
-            </li>
-          ))}
-        </ul>
-      </Box>
-
-      {/* Daftar track dengan tombol Play/Pause */}
-      <Box className="mt-8 w-full max-w-md">
-        {dataDummy.map((source, index) => {
-          // Cek apakah source sedang diputar
-          const isCurrentTrack = currentTrack?.source === source;
-
+    <div className="p-6">
+      <h1 className="text-3xl font-bold mb-6">Home - Daftar Lagu</h1>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {songs.map((song) => {
           return (
-            <Box
-              key={index}
-              className="flex items-center justify-between p-4 mb-2 bg-gray-800 rounded-lg shadow-md">
-              {/* Tombol Play/Pause */}
-              <IconButton
-                color={isCurrentTrack && playing ? "primary" : "default"}
-                onClick={() => handlePlayPause({ source })}
-                sx={{
-                  borderRadius: "8px",
-                  backgroundColor:
-                    isCurrentTrack && playing ? "#1db954" : "#333",
-                  "&:hover": {
-                    backgroundColor: "#555",
-                  },
-                  padding: "8px",
-                }}>
-                {isCurrentTrack && playing ? <Pause /> : <PlayArrow />}
-              </IconButton>
-
-              {/* Tombol Add to Playlist */}
-              <IconButton
-                color="primary"
-                onClick={() => handleAddToPlaylist(source)}
-                sx={{
-                  borderRadius: "8px",
-                  backgroundColor: "#333",
-                  "&:hover": {
-                    backgroundColor: "#555",
-                  },
-                  padding: "8px",
-                }}>
-                <Add />
-              </IconButton>
-
-              <span className="text-white">{source}</span>
-            </Box>
+            <div
+              key={song.id}
+              className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-all">
+              <div className="text-lg font-semibold mb-4">{song.title}</div>
+              <div className="flex justify-between">
+                <button
+                  onClick={() => handlePlayPause({ source: song.source })}
+                  className={`${
+                    playing && currentTrack?.id == song.id
+                      ? "bg-green-500"
+                      : "bg-blue-500"
+                  } text-white py-2 px-4 rounded-md shadow-md focus:outline-none hover:bg-opacity-90`}>
+                  {playing && currentTrack?.id == song.id ? "Pause" : "Play"}
+                </button>
+                <button
+                  onClick={() => handleAddToPlaylist(song.source)}
+                  className="bg-indigo-500 text-white py-2 px-4 rounded-md shadow-md focus:outline-none hover:bg-opacity-90">
+                  Add to Playlist
+                </button>
+              </div>
+            </div>
           );
         })}
-      </Box>
-
-      <Playlist />
-      <AudioController />
+      </div>
     </div>
   );
 };

@@ -10,7 +10,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!session) {
-      router.push("/auth"); // Navigate to the auth page if no session
+      router.push("/auth");
     }
   }, [session, router]);
 

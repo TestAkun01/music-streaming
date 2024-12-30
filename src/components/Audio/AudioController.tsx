@@ -2,28 +2,26 @@
 
 import {
   Repeat,
-  RepeatOne,
-  SkipPrevious,
-  SkipNext,
-  PlayArrow,
+  RepeatOnce,
+  SkipBack,
+  SkipForward,
+  Play,
   Pause,
-  VolumeUp,
-  VolumeOff,
+  SpeakerHigh,
+  SpeakerNone,
+  Rewind,
   FastForward,
-  FastRewind,
-} from "@mui/icons-material";
-import { IconButton, Slider, Typography, Box, Button } from "@mui/material";
+} from "@phosphor-icons/react";
 import { useAudioContext } from "@/providers/AudioProvider";
 import { formatTime } from "@/utils/formatTime";
 
-const AudioController: React.FC = () => {
+const AudioController = () => {
   const {
     playing,
     duration,
     volume,
     currentTime,
-    playlist,
-    currentId,
+    currentTrack,
     loop,
     handlePlayPause,
     handleLoopChange,
@@ -37,154 +35,86 @@ const AudioController: React.FC = () => {
     handlePreviousTrack,
   } = useAudioContext();
 
-  const currentTrack = playlist.find((item) => item.id === currentId); // Menampilkan nama track yang sedang diputar
-
   return (
-    <div className="w-full mx-auto bg-gray-900 p-4 rounded-lg shadow-lg">
-      <div className="mb-3">
-        <div className="flex items-center gap-2 mb-1">
-          <Typography variant="body2" className="text-gray-400 w-10 text-right">
+    <div className="w-full mx-auto bg-gray-800 p-4 rounded-lg shadow-lg">
+      <div className="mb-4">
+        <div className="flex items-center gap-2">
+          <span className="text-gray-400 text-sm">
             {currentTime ? formatTime(currentTime) : "00:00"}
-          </Typography>
-          <div className="flex-1 px-2">
-            <Slider
-              value={currentTime}
-              min={0}
-              max={duration}
-              onChange={handleTimeChange}
-              // onTouchStart={handleSeekStart}
-              // onTouchEnd={handleSeekEnd}
-              sx={{
-                color: "#1DB954",
-                height: 2,
-                "& .MuiSlider-thumb": {
-                  backgroundColor: "#fff",
-                  width: 16,
-                  height: 16,
-                },
-                "& .MuiSlider-rail": {
-                  backgroundColor: "#4a4a4a",
-                },
-              }}
-            />
-          </div>
-          <Typography variant="body2" className="text-gray-400 w-10">
+          </span>
+          <input
+            type="range"
+            className="range range-xs flex-1"
+            min="0"
+            max={duration || 0}
+            value={currentTime}
+            onChange={(e) => handleTimeChange(e)}
+          />
+          <span className="text-gray-400 text-sm">
             {duration ? formatTime(duration) : "00:00"}
-          </Typography>
+          </span>
         </div>
       </div>
 
       <div className="flex items-center justify-between">
-        {/* Loop Control - Left Side (1/4) */}
         <div className="w-1/4 flex justify-start">
-          <IconButton
-            onClick={handleLoopChange}
-            color={loop !== 0 ? "primary" : "default"}
-            sx={{
-              color: loop !== 0 ? "#1DB954" : "gray",
-              "&:hover": {
-                backgroundColor: "rgba(255, 255, 255, 0.1)",
-              },
-            }}>
+          <button className="btn btn-circle btn-sm" onClick={handleLoopChange}>
             {loop === 1 ? (
-              <RepeatOne className="w-5 h-5" />
+              <RepeatOnce size={20} className="text-gray-400" />
             ) : (
-              <Repeat className="w-5 h-5" />
+              <Repeat size={20} className="text-gray-400" />
             )}
-          </IconButton>
+          </button>
         </div>
 
-        {/* Center Controls (Play, Previous, Skip, Next, etc. - 2/4) */}
-        <div className="w-2/4 flex items-center justify-center gap-4">
-          <IconButton
-            onClick={handlePreviousTrack}
-            sx={{
-              color: "gray",
-              "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.1)" },
-            }}>
-            <SkipPrevious className="w-6 h-6" />
-          </IconButton>
+        <div className="w-2/4 flex items-center justify-center gap-2">
+          <button
+            className="btn btn-circle btn-sm"
+            onClick={handlePreviousTrack}>
+            <SkipBack size={24} className="text-gray-400" />
+          </button>
 
-          <IconButton
-            onClick={handleSkipBackward}
-            sx={{
-              color: "gray",
-              "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.1)" },
-            }}>
-            <FastRewind className="w-6 h-6" />
-          </IconButton>
+          <button
+            className="btn btn-circle btn-sm"
+            onClick={handleSkipBackward}>
+            <Rewind size={24} className="text-gray-400" />
+          </button>
 
-          <Button
-            variant="contained"
-            color="primary"
-            sx={{
-              padding: "12px",
-              borderRadius: "50%",
-              backgroundColor: "#1DB954",
-              "&:hover": {
-                backgroundColor: "#1aa34a",
-              },
-            }}
+          <button
+            className="btn btn-circle btn-primary btn-lg"
             onClick={() => handlePlayPause()}>
-            {playing ? (
-              <Pause className="w-7 h-7" />
-            ) : (
-              <PlayArrow className="w-7 h-7" />
-            )}
-          </Button>
+            {playing ? <Pause size={28} /> : <Play size={28} />}
+          </button>
 
-          <IconButton
-            onClick={handleSkipForward}
-            sx={{
-              color: "gray",
-              "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.1)" },
-            }}>
-            <FastForward className="w-6 h-6" />
-          </IconButton>
+          <button className="btn btn-circle btn-sm" onClick={handleSkipForward}>
+            <FastForward size={24} className="text-gray-400" />
+          </button>
 
-          <IconButton
-            onClick={handleNextTrack}
-            sx={{
-              color: "gray",
-              "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.1)" },
-            }}>
-            <SkipNext className="w-6 h-6" />
-          </IconButton>
+          <button className="btn btn-circle btn-sm" onClick={handleNextTrack}>
+            <SkipForward size={24} className="text-gray-400" />
+          </button>
         </div>
 
-        {/* Volume Control - Right Side (1/4) */}
         <div className="w-1/4 flex justify-end items-center gap-2">
-          <IconButton sx={{ color: volume === 0 ? "gray" : "#1DB954" }}>
+          <button className="btn btn-circle btn-sm">
             {volume === 0 ? (
-              <VolumeOff className="w-5 h-5" />
+              <SpeakerNone size={20} className="text-gray-400" />
             ) : (
-              <VolumeUp className="w-5 h-5" />
+              <SpeakerHigh size={20} className="text-gray-400" />
             )}
-          </IconButton>
-          <div className="px-2">
-            <Slider
-              value={volume * 100}
-              min={0}
-              max={100}
-              onChange={handleVolumeChange}
-              sx={{
-                width: 100,
-                color: "#1DB954",
-                "& .MuiSlider-thumb": {
-                  backgroundColor: "#fff",
-                  width: 16,
-                  height: 16,
-                },
-                "& .MuiSlider-rail": {
-                  backgroundColor: "#4a4a4a",
-                },
-              }}
-            />
-          </div>
+          </button>
+          <input
+            type="range"
+            className="range range-xs w-32"
+            min="0"
+            max="100"
+            value={volume * 100}
+            onChange={(e) => handleVolumeChange(e)}
+          />
         </div>
       </div>
 
-      <div className="mt-3 text-center text-gray-400 text-sm">
+      <div className="mt-4 text-center text-gray-400 text-sm">
         <span>
           Now Playing: {currentTrack ? currentTrack.source : "No Track"}
         </span>

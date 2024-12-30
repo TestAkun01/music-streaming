@@ -2,7 +2,13 @@
 
 import AudioContextType from "@/types/AudioContextType";
 import AudioProviderProps from "@/types/AudioProviderProps";
-import { createContext, useContext, useState, useEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ChangeEvent,
+} from "react";
 import { useGlobalAudioPlayer } from "react-use-audio-player";
 import { v4 as uuidv4 } from "uuid";
 import PlaylistItem from "@/types/PlaylistItemType";
@@ -35,43 +41,41 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
   const [seekTime, setSeekTime] = useState(0);
   const [isSeeking, setIsSeeking] = useState(false);
   const [playlist, setPlaylist] = useState<PlaylistItem[]>([]);
-  const [currentId, setCurrentId] = useState<string | null>(null);
+  const [currentTrack, setCurrentTrack] = useState<PlaylistItem | null>(null);
   const [loop, setLoop] = useState<0 | 1 | 2>(0);
   const [trigger, setTrigger] = useState(0);
 
   const handleTrackChange = () => {
-    if (playlist.length === 0 || !currentId) return;
+    if (playlist.length === 0 || !currentTrack) return;
 
     const currentTrackIndex = playlist.findIndex(
-      (item) => item.id === currentId
+      (item) => item.temporaryId === currentTrack.temporaryId
     );
 
     switch (loop) {
       case 0:
         if (currentTrackIndex < playlist.length - 1) {
-          setCurrentId(playlist[currentTrackIndex + 1].id);
+          setCurrentTrack(playlist[currentTrackIndex + 1]);
         }
         break;
       case 1:
-        setCurrentId(currentId);
+        setCurrentTrack(currentTrack);
         setTrigger((prevTrigger) => prevTrigger + 1);
         break;
       case 2:
-        setCurrentId(playlist[(currentTrackIndex + 1) % playlist.length].id);
+        setCurrentTrack(playlist[(currentTrackIndex + 1) % playlist.length]);
         break;
     }
   };
+
   useEffect(() => {
-    if (currentId) {
-      const currentTrack = playlist.find((item) => item.id === currentId);
-      if (currentTrack) {
-        load(currentTrack.source, {
-          autoplay: true,
-          onend: () => handleTrackChange(),
-        });
-      }
+    if (currentTrack) {
+      load(currentTrack.source, {
+        autoplay: true,
+        onend: () => handleTrackChange(),
+      });
     }
-  }, [currentId, trigger]);
+  }, [currentTrack, trigger]);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -84,10 +88,8 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
     return () => clearInterval(intervalId);
   }, [isSeeking]);
 
-  const handleTimeChange = (event: Event, newValue: number | number[]) => {
-    console.log(newValue);
-
-    const newTime = newValue as number;
+  const handleTimeChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const newTime = Number(event.target.value);
     setSeekTime(newTime);
     seek(newTime);
     setCurrentTime(newTime);
@@ -103,8 +105,8 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
     seek(seekTime);
   };
 
-  const handleVolumeChange = (event: Event, newValue: number | number[]) => {
-    setVolume((newValue as number) / 100);
+  const handleVolumeChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setVolume(Number(event.target.value) / 100);
   };
 
   const handleSkipForward = () => {
@@ -125,11 +127,11 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
 
   const handlePreviousTrack = () => {
     const currentTrackIndex = playlist.findIndex(
-      (item) => item.id === currentId
+      (item) => item.temporaryId === currentTrack?.temporaryId
     );
     const previousTrack =
       playlist[(currentTrackIndex - 1 + playlist.length) % playlist.length];
-    setCurrentId(previousTrack.id);
+    setCurrentTrack(previousTrack);
   };
 
   const handlePlayPause = (options?: PlayOptions) => {
@@ -138,22 +140,26 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
         (item) => item.source === options.source
       );
 
-      const currentTrack = filteredTracks.find(
-        (track) => track.id === currentId
+      const track = filteredTracks.find(
+        (track) => track.temporaryId === currentTrack?.temporaryId
       );
 
-      if (currentTrack) {
+      if (track) {
         togglePlayPause();
       } else {
-        const newTrack = { id: uuidv4(), source: options.source };
+        const newTrack = {
+          id: uuidv4(),
+          source: options.source,
+          temporaryId: uuidv4(),
+        };
         setPlaylist([newTrack]);
-        setCurrentId(newTrack.id);
+        setCurrentTrack(newTrack);
       }
     } else if (options?.id) {
       const track = playlist.find((item) => item.id === options.id);
 
       if (track) {
-        setCurrentId(track.id);
+        setCurrentTrack(track);
         togglePlayPause();
       }
     } else {
@@ -166,15 +172,17 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
   };
 
   const handleAddToPlaylist = (song: string) => {
-    const newTrack = { id: uuidv4(), source: song };
+    const newTrack = { id: uuidv4(), source: song, temporaryId: uuidv4() };
     setPlaylist((prevPlaylist) => [...prevPlaylist, newTrack]);
   };
 
-  const handleRemoveFromPlaylist = (id: string) => {
+  const handleRemoveFromPlaylist = (temporaryId: string) => {
     setPlaylist((prevPlaylist) => {
-      const newPlaylist = prevPlaylist.filter((item) => item.id !== id);
-      if (id === currentId) {
-        setCurrentId(newPlaylist.length > 0 ? newPlaylist[0].id : null);
+      const newPlaylist = prevPlaylist.filter(
+        (item) => item.temporaryId !== temporaryId
+      );
+      if (temporaryId === currentTrack?.temporaryId) {
+        setCurrentTrack(newPlaylist.length > 0 ? newPlaylist[0] : null);
       }
       return newPlaylist;
     });
@@ -182,7 +190,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
 
   const handleClearPlaylist = () => {
     setPlaylist([]);
-    setCurrentId(null);
+    setCurrentTrack(null);
     stop();
   };
 
@@ -191,7 +199,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
       const newPlaylist = prevPlaylist.map((item) =>
         item.id === id ? { ...item, source: newSource } : item
       );
-      if (id === currentId) {
+      if (id === currentTrack?.id) {
         load(newSource, {
           autoplay: playing,
           onend: () => handleTrackChange(),
@@ -207,8 +215,10 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
       const [movedSong] = updatedPlaylist.splice(fromIndex, 1);
       updatedPlaylist.splice(toIndex, 0, movedSong);
 
-      if (currentId === updatedPlaylist[fromIndex].id) {
-        setCurrentId(updatedPlaylist[toIndex].id);
+      if (
+        currentTrack?.temporaryId === updatedPlaylist[fromIndex].temporaryId
+      ) {
+        setCurrentTrack(updatedPlaylist[toIndex]);
       }
 
       return updatedPlaylist;
@@ -224,7 +234,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
         playing,
         duration,
         playlist,
-        currentId,
+        currentTrack,
         setPlaylist,
         handleLoopChange,
         handlePlayPause,

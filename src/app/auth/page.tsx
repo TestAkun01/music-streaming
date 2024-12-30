@@ -1,11 +1,8 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 
 export default function AuthenticationPage() {
-  const router = useRouter();
-
   const handleLogin = (provider: string) => {
     signIn(provider);
   };
