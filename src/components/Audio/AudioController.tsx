@@ -11,8 +11,8 @@ import { SpeakerLow } from "@phosphor-icons/react/SpeakerLow";
 import { SpeakerHigh } from "@phosphor-icons/react/SpeakerHigh";
 import { Rewind } from "@phosphor-icons/react/Rewind";
 import { FastForward } from "@phosphor-icons/react/FastForward";
-
 import { useAudioContext } from "@/providers/AudioProvider";
+import { Playlist } from "@phosphor-icons/react/Playlist";
 import { formatTime } from "@/utils/formatTime";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
@@ -25,6 +25,7 @@ const AudioController = () => {
     currentTime,
     currentTrack,
     loop,
+    playlistIsOpen,
     handlePlayPause,
     handleLoopChange,
     handleSeekEnd,
@@ -35,10 +36,11 @@ const AudioController = () => {
     handleVolumeChange,
     handleNextTrack,
     handlePreviousTrack,
+    handleTogglePlaylistIsOpen,
   } = useAudioContext();
 
   return (
-    <div className="w-full mx-auto backdrop-blur-lg bg-zinc-950 px-6 py-3 items-center space-y-2 absolute bottom-0">
+    <div className="w-full mx-auto backdrop-blur-3xl bg-zinc-950/60 px-6 py-3 items-center space-y-2 absolute bottom-0">
       <div className="flex items-center gap-4 flex-grow">
         <span className="text-gray-50 text-sm">
           {currentTime ? formatTime(currentTime) : "00:00"}
@@ -49,9 +51,14 @@ const AudioController = () => {
           max={duration}
           value={currentTime}
           styles={{
-            track: { backgroundColor: "#00ADB5" },
+            track: { backgroundColor: "#f97316" },
             rail: { backgroundColor: "#393E46" },
-            handle: { backgroundColor: "#00ADB5", opacity: 1, border: "none" },
+            handle: {
+              backgroundColor: "#f97316",
+              opacity: 1,
+              border: "none",
+              boxShadow: "none",
+            },
           }}
           onChange={(value) => handleTimeChange(value as number)}
         />
@@ -62,9 +69,9 @@ const AudioController = () => {
 
       <div className="flex gap-2">
         {/* Now Playing */}
-        <div className="flex items-center justify-start w-2/12">
+        <div className="flex items-center justify-start w-1/4 overflow-hidden">
           <span className="text-sm text-gray-300">
-            Now Playing: {currentTrack ? currentTrack.source : "No Track"}
+            Now Playing: {currentTrack ? currentTrack.title : "No Track"}
           </span>
         </div>
 
@@ -73,45 +80,49 @@ const AudioController = () => {
           <button
             className="btn btn-sm btn-circle hover:bg-transparent bg-transparent text-gray-50 hover:text-gray-300 border-none"
             onClick={handlePreviousTrack}>
-            <SkipBack size={24} />
+            <SkipBack weight="bold" size={24} />
           </button>
 
           <button
             className="btn btn-sm btn-circle hover:bg-transparent bg-transparent text-gray-50 hover:text-gray-300 border-none"
             onClick={handleSkipBackward}>
-            <Rewind size={24} />
+            <Rewind weight="bold" size={24} />
           </button>
 
           <button
             className="btn btn-circle btn-outline hover:bg-transparent text-gray-50 hover:text-gray-300"
             onClick={() => handlePlayPause()}>
-            {playing ? <Pause size={28} /> : <Play size={28} />}
+            {playing ? (
+              <Pause weight="bold" size={24} />
+            ) : (
+              <Play weight="bold" size={24} />
+            )}
           </button>
 
           <button
             className="btn  btn-sm btn-circle hover:bg-transparent bg-transparent text-gray-50 hover:text-gray-300 border-none"
             onClick={handleSkipForward}>
-            <FastForward size={24} />
+            <FastForward weight="bold" size={24} />
           </button>
 
           <button
             className="btn  btn-sm btn-circle hover:bg-transparent bg-transparent text-gray-50 hover:text-gray-300 border-none"
             onClick={handleNextTrack}>
-            <SkipForward size={24} />
+            <SkipForward weight="bold" size={24} />
           </button>
         </div>
 
         {/* Additional Controls */}
-        <div className="flex justify-end items-center gap-2 w-2/12">
+        <div className="flex justify-end items-center gap-4 w-1/4">
           <button
             onClick={() => handleVolumeChange(volume === 0 ? 1 : 0)}
-            className="btn  btn-sm btn-circle hover:bg-transparent bg-transparent text-gray-50 hover:text-gray-300 border-none">
+            className="btn btn-sm btn-circle hover:bg-transparent bg-transparent text-gray-50 hover:text-gray-300 border-none">
             {volume === 0 ? (
-              <SpeakerNone size={20} />
+              <SpeakerNone weight="bold" size={24} />
             ) : volume <= 0.5 ? (
-              <SpeakerLow size={20} />
+              <SpeakerLow weight="bold" size={24} />
             ) : (
-              <SpeakerHigh size={20} />
+              <SpeakerHigh weight="bold" size={24} />
             )}
           </button>
           <Slider
@@ -119,26 +130,40 @@ const AudioController = () => {
             max={1}
             step={0.01}
             value={volume}
-            className="slider"
+            className="w-24"
             onChange={(value) => handleVolumeChange(value as number)}
             styles={{
-              track: { backgroundColor: "#00ADB5" },
+              track: { backgroundColor: "#f97316" },
               rail: { backgroundColor: "#393E46" },
               handle: {
-                backgroundColor: "#00ADB5",
+                backgroundColor: "#f97316",
                 opacity: 1,
                 border: "none",
+                boxShadow: "none",
               },
             }}
           />
           <button
             className={`btn btn-sm btn-circle hover:bg-transparent bg-transparent border-none ${
               loop != 0
-                ? "text-blue-400 hover:text-blue-500"
+                ? "text-orange-500 hover:text-orange-700"
                 : "text-gray-50 hover:text-gray-300"
             }`}
             onClick={handleLoopChange}>
-            {loop !== 2 ? <Repeat size={20} /> : <RepeatOnce size={20} />}
+            {loop !== 2 ? (
+              <Repeat weight="bold" size={24} />
+            ) : (
+              <RepeatOnce weight="bold" size={24} />
+            )}
+          </button>
+          <button
+            className={`btn btn-sm btn-circle hover:bg-transparent bg-transparent border-none ${
+              playlistIsOpen
+                ? "text-orange-500 hover:text-orange-700"
+                : "text-gray-50 hover:text-gray-300"
+            }`}
+            onClick={handleTogglePlaylistIsOpen}>
+            <Playlist weight="bold" size={24} />
           </button>
         </div>
       </div>

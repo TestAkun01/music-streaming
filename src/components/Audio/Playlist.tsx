@@ -9,14 +9,17 @@ import { X } from "@phosphor-icons/react/X";
 import { DotsSixVertical } from "@phosphor-icons/react/DotsSixVertical";
 
 import { useAudioContext } from "@/providers/AudioProvider";
-import formatSongName from "@/utils/formatSongName";
 import PlaylistItem from "@/types/PlaylistItemType";
+
+import formatSongName from "@/utils/formatSongName";
+import { formatTime } from "@/utils/formatTime";
 
 export default function Playlist() {
   const {
     playlist,
     currentTrack,
     playing,
+    playlistIsOpen,
     setPlaylist,
     handlePlayPause,
     handleRemoveFromPlaylist,
@@ -24,7 +27,7 @@ export default function Playlist() {
   } = useAudioContext();
 
   return (
-    <div className="flex flex-col h-full rounded-xl shadow-xl overflow-hidden bg-zinc-900">
+    <div className="flex flex-col h-full rounded-xl shadow-xl overflow-hidden">
       <div className="p-4 flex items-center justify-between border-b border-zinc-700">
         <h2 className="font-semibold text-zinc-100 text-lg">
           Playlist ({playlist.length})
@@ -41,7 +44,7 @@ export default function Playlist() {
       <div className="flex-1 overflow-auto">
         {playlist.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full p-4 text-center text-zinc-400">
-            <MusicNote size={48} className="mb-2 text-zinc-500" />
+            <MusicNote size={48} className="mb-2 text-orange-500" />
             <p className="text-lg font-semibold text-zinc-300">
               Your playlist is empty
             </p>
@@ -78,16 +81,16 @@ export default function Playlist() {
                     className="cursor-grab text-zinc-400 group-hover:text-zinc-300 transition-all"
                   />
                   <img
-                    src={track.thumbnail || "https://placehold.co/24"}
+                    src={track.cover_url || "https://placehold.co/24"}
                     alt={track.title || "Song Thumbnail"}
                     className="w-12 h-12 object-cover rounded-md"
                   />
                   <div className="flex flex-col">
                     <span className="text-sm font-medium text-zinc-200">
-                      {formatSongName(track.source)}
+                      {track.title}
                     </span>
                     <span className="text-sm text-zinc-400">
-                      {track.artist}
+                      {formatTime(track.duration)}
                     </span>
                   </div>
                   <button className="flex items-center gap-3 text-left text-zinc-200">
@@ -107,7 +110,7 @@ export default function Playlist() {
                 <button
                   className="btn btn-circle btn-sm opacity-0 group-hover:opacity-100 transition-opacity bg-zinc-700 hover:bg-zinc-600"
                   onClick={(e) => {
-                    e.preventDefault;
+                    e.stopPropagation();
                     handleRemoveFromPlaylist(track.temporaryId!);
                   }}>
                   <X size={16} />

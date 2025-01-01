@@ -14,11 +14,10 @@ export default function CenterMainComponent({
       defer
       options={{
         scrollbars: {
-          visibility: "auto",
-          autoHide: "scroll",
+          visibility: "hidden",
         },
       }}
-      className="flex-1 px-2">
+      className="flex-1 px-2 mb-32 h-full">
       {children}
     </OverlayScrollbarsComponent>
   );

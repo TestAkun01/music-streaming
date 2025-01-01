@@ -1,6 +1,6 @@
 import PlaylistItem from "./PlaylistItemType";
 import PlayOptions from "./PlayOptionType";
-import Track from "./TrackType";
+import { Track } from "./TableDatabaseType";
 
 interface AudioContextType {
   loop: 0 | 1 | 2;
@@ -10,6 +10,7 @@ interface AudioContextType {
   duration: number;
   playlist: PlaylistItem[];
   currentTrack: PlaylistItem | null;
+  playlistIsOpen: boolean;
   setPlaylist: (Playlist: PlaylistItem[]) => void;
   handlePlayPause: (
     options?: PlayOptions,
@@ -27,6 +28,7 @@ interface AudioContextType {
   handleAddToPlaylist: (track: Track) => void;
   handleRemoveFromPlaylist: (id: string) => void;
   handleClearPlaylist: () => void;
+  handleTogglePlaylistIsOpen: () => void;
 }
 
 export default AudioContextType;
