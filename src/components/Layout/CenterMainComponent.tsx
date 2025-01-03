@@ -1,24 +1,26 @@
 "use client";
 
 import { ReactNode } from "react";
-import "overlayscrollbars/overlayscrollbars.css";
-import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
+import { motion } from "framer-motion";
+import useAudiocontroller from "@/hooks/useAudioController";
 
 export default function CenterMainComponent({
   children,
 }: {
   children: ReactNode;
 }) {
+  const { playlistIsOpen } = useAudiocontroller();
+
   return (
-    <OverlayScrollbarsComponent
-      defer
-      options={{
-        scrollbars: {
-          visibility: "hidden",
-        },
+    <motion.div
+      animate={{
+        marginRight: playlistIsOpen ? "24rem" : "0%",
       }}
-      className="flex-1 px-2 mb-32 h-full">
+      transition={{ duration: 0.75, ease: "easeInOut" }}
+      className="flex-1 h-full overflow-y-auto
+          scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-800
+          hover:scrollbar-thumb-zinc-700 scroll-smooth">
       {children}
-    </OverlayScrollbarsComponent>
+    </motion.div>
   );
 }

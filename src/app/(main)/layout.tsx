@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
-import { AudioProvider } from "@/providers/AudioProvider";
 import "@/styles/globals.css";
 import { Navbar } from "@/components/Navbar";
 import LeftMainComponent from "@/components/Layout/LeftMainComponent";
@@ -27,19 +26,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${poppins.variable} antialiase  h-screen`}>
-        <AudioProvider>
-          <div className="flex h-screen bg-zinc-900">
-            <LeftMainComponent />
-            <div className="w-full h-full rounded rounded-s-[28px] bg-zinc-950 overflow-hidden flex flex-col relative">
-              <Navbar />
-              <div className="flex overflow-hidden">
-                <CenterMainComponent>{children}</CenterMainComponent>
-                <RightMainComponent />
-              </div>
-              <AudioController />
+        <div className="flex h-screen bg-zinc-900">
+          <LeftMainComponent />
+          <div className="w-full h-full rounded rounded-s-[28px] bg-[linear-gradient(200deg,_rgba(255,165,0,0.05)_0%,_rgba(10,10,10,1)_30%)] overflow-hidden flex flex-col relative">
+            <Navbar />
+            <div className="flex overflow-hidden relative h-full">
+              <CenterMainComponent>{children}</CenterMainComponent>
+              <RightMainComponent />
             </div>
+            <AudioController />
           </div>
-        </AudioProvider>
+        </div>
       </body>
     </html>
   );

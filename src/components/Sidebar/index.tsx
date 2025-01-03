@@ -56,15 +56,15 @@ const customPlaylists: MainMenuItem[] = [
 export const Sidebar = ({ className, onToggle, isOpen }: SidebarProps) => {
   return (
     <motion.div
-      transition={{ duration: 0.5, ease: "easeInOut" }}
-      className={`flex flex-col h-full text-sm ${className} py-6 px-3`}>
+      transition={{ duration: 0.5, ease: "easeInOut", delay: isOpen ? 0 : 0.5 }}
+      className={`flex flex-col h-full text-sm ${className} py-3 px-3 `}>
       {/* Header */}
-      <div className="px-3 py-1">
+      <div className="p-3 pb-0 ">
         <button onClick={onToggle} className="text-zinc-400 hover:text-white">
-          <List weight="regular" size={20} />
+          <List weight="bold" size={20} />
         </button>
       </div>
-      <p className="divider  m-0"></p>
+      <p className="divider m-0"></p>
 
       {/* Main Menu */}
       <div className="space-y-1 ">
@@ -109,9 +109,7 @@ export const Sidebar = ({ className, onToggle, isOpen }: SidebarProps) => {
             visibility: isOpen ? "visible" : "hidden",
           }}
           transition={{
-            type: "spring",
-            stiffness: 100,
-            damping: 25,
+            duration: 0.3,
             delay: isOpen ? 0.3 : 0,
           }}
           className="absolute left-0 right-0 bottom-0 text-xs text-zinc-zinc  py-4">

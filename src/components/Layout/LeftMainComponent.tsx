@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
+import { motion } from "framer-motion";
 import { Sidebar } from "../Sidebar";
 
 export default function LeftMainComponent() {
@@ -12,13 +12,12 @@ export default function LeftMainComponent() {
   };
 
   return (
-    <div
-      className={`
-        relative
-        transition-[width] duration-300 ease-in-out h-full
-        ${isOpen ? "w-[15%]" : "w-20"}
-      `}>
+    <motion.div
+      initial={{ width: "200px" }}
+      animate={{ width: isOpen ? "200px" : "80px" }}
+      transition={{ duration: 0.5, ease: "easeInOut" }}
+      className="relative h-full overflow-hidden">
       <Sidebar onToggle={handleIsOpen} isOpen={isOpen} />
-    </div>
+    </motion.div>
   );
 }

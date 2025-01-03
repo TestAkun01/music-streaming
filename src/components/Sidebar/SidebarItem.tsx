@@ -69,15 +69,15 @@ const SidebarItem = ({
 
   return (
     <motion.div
-      data-tip={label}
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.5 }}>
+      transition={{ duration: 0.5, delay: isOpen ? 0 : 0.5 }}>
       <Link
         href={href}
         className={`flex items-center px-3 py-2 ${textClass} group rounded-md group relative ${
           isOpen ? "" : "mx-auto tooltip tooltip-right"
-        }`}>
+        }`}
+        data-tip={label}>
         <motion.div
           className={`min-w-[20px] aspect-square flex justify-center items-center`}
           initial={{ scale: 0 }}
@@ -85,7 +85,7 @@ const SidebarItem = ({
           transition={{ duration: 0.5 }}>
           {icon ? (
             React.createElement(icon, {
-              weight: "regular",
+              weight: "bold",
               size: 20,
               className: active
                 ? `${activeText} `
@@ -110,7 +110,10 @@ const SidebarItem = ({
             opacity: isOpen ? 1 : 0,
             visibility: isOpen ? "visible" : "hidden",
           }}
-          transition={{ duration: 0.3, ease: "easeInOut" }}>
+          transition={{
+            duration: 0.3,
+            ease: "easeInOut",
+          }}>
           {label}
         </motion.span>
       </Link>

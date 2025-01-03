@@ -1,9 +1,9 @@
 "use client";
 
-import FeaturedCollection from "@/components/Home/FeaturedCollection";
 import NavigationTabs from "@/components/Home/NavigationTabs";
 import TrackList from "@/components/Home/TrackList";
 import StatisticsGrid from "@/components/Home/StatisticCard";
+import CollectionHeader from "@/components/CollectionHeader";
 
 const Home = () => {
   const statistics = {
@@ -13,8 +13,8 @@ const Home = () => {
   };
 
   return (
-    <div className="p-6 pb-32">
-      <FeaturedCollection />
+    <div className="p-6">
+      <CollectionHeader />
       <NavigationTabs />
       <TrackList />
       <StatisticsGrid statistics={statistics} />

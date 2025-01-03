@@ -11,7 +11,7 @@ import { SpeakerLow } from "@phosphor-icons/react/SpeakerLow";
 import { SpeakerHigh } from "@phosphor-icons/react/SpeakerHigh";
 import { Rewind } from "@phosphor-icons/react/Rewind";
 import { FastForward } from "@phosphor-icons/react/FastForward";
-import { useAudioContext } from "@/providers/AudioProvider";
+import useAudioController from "@/hooks/useAudioController";
 import { Playlist } from "@phosphor-icons/react/Playlist";
 import { formatTime } from "@/utils/formatTime";
 import Slider from "rc-slider";
@@ -22,6 +22,8 @@ const AudioController = () => {
     playing,
     duration,
     volume,
+    isLoading,
+    isReady,
     currentTime,
     currentTrack,
     loop,
@@ -37,10 +39,10 @@ const AudioController = () => {
     handleNextTrack,
     handlePreviousTrack,
     handleTogglePlaylistIsOpen,
-  } = useAudioContext();
+  } = useAudioController();
 
   return (
-    <div className="w-full mx-auto backdrop-blur-3xl bg-zinc-950/60 px-6 py-3 items-center space-y-2 absolute bottom-0">
+    <div className="w-full mx-auto backdrop-blur-3xl bg-zinc-950/60 px-6 py-3 items-center space-y-2">
       <div className="flex items-center gap-4 flex-grow">
         <span className="text-gray-50 text-sm">
           {currentTime ? formatTime(currentTime) : "00:00"}
@@ -91,8 +93,12 @@ const AudioController = () => {
 
           <button
             className="btn btn-circle btn-outline hover:bg-transparent text-gray-50 hover:text-gray-300"
-            onClick={() => handlePlayPause()}>
-            {playing ? (
+            onClick={() => handlePlayPause()}
+            disabled={isLoading} // Disable tombol saat loading atau belum siap
+          >
+            {isLoading ? (
+              <span className="loading loading-spinner text-gray-50"></span>
+            ) : playing ? (
               <Pause weight="bold" size={24} />
             ) : (
               <Play weight="bold" size={24} />

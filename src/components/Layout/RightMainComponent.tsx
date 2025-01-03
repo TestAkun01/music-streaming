@@ -2,21 +2,21 @@
 
 import { motion } from "framer-motion";
 
-import { useAudioContext } from "@/providers/AudioProvider";
+import useAudioController from "@/hooks/useAudioController";
 import Playlist from "../Audio/Playlist";
 
 export default function RightMainComponent() {
-  const { playlistIsOpen } = useAudioContext();
+  const { playlistIsOpen } = useAudioController();
 
   return (
     <motion.div
-      className="overflow-y-auto"
-      initial={{ width: 0, opacity: 0 }}
+      className="absolute right-0 top-0 h-full w-96"
+      initial={{ x: "100%", opacity: 0 }}
       animate={{
-        width: playlistIsOpen ? "28%" : 0,
+        x: playlistIsOpen ? "0%" : "100%",
         opacity: playlistIsOpen ? 1 : 0,
       }}
-      transition={{ duration: 0.8, ease: "easeInOut" }}>
+      transition={{ duration: 0.75, ease: "easeInOut" }}>
       <Playlist />
     </motion.div>
   );

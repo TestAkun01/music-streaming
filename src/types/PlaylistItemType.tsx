@@ -1,6 +1,6 @@
-import { Track } from "@/types/TableDatabaseType";
+import { Tables } from "@/types/DatabaseType";
 
-interface PlaylistItem extends Track {
-  temporaryId: string;
+interface PlaylistItem extends Tables<"tracks"> {
+  temporaryId?: string;
 }
 export default PlaylistItem;
