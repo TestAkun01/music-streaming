@@ -51,8 +51,17 @@ export default function useAudioController() {
     handleTogglePlaylistIsOpen,
   } = usePlaylistController();
   const { handleVolumeChange, handleLoopChange } = useAdditionalController();
-  const { duration, playing, volume, isLoading, isReady, load, getPosition } =
-    useGlobalAudioPlayer();
+  const {
+    duration,
+    playing,
+    volume,
+    isLoading,
+    isReady,
+    stop,
+    load,
+    getPosition,
+    error,
+  } = useGlobalAudioPlayer();
 
   const updateCurrentTime = () => {
     if (!isSeekingRef.current) {
@@ -79,20 +88,18 @@ export default function useAudioController() {
         },
         onend: handleNextTrack,
       });
-
+      if (error) {
+        stop();
+        console.log(error);
+        setCurrentTime(0);
+      }
       return () => {
         if (intervalId) {
           clearInterval(intervalId);
         }
       };
     }
-  }, [
-    currentTrack?.temporaryId,
-    trigger,
-    updateCurrentTime,
-    load,
-    handleNextTrack,
-  ]);
+  }, [currentTrack?.temporaryId, trigger]);
 
   const handler = {
     duration,
