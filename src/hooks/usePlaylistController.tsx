@@ -1,4 +1,3 @@
-import { useCallback, useMemo } from "react";
 import { Tables } from "@/types/DatabaseType";
 import PlaylistItem from "@/types/PlaylistItemType";
 import useAudioStore from "@/store/audioStore";
@@ -26,87 +25,69 @@ export default function usePlaylistController(): PlaylistController {
     playlist,
   } = useAudioStore();
 
-  const findNextTrack = useCallback(
-    (removedTrackId: string) => {
-      if (!currentTrack || playlist.length <= 1) return null;
+  const findNextTrack = (removedTrackId: string) => {
+    if (!currentTrack || playlist.length <= 1) return null;
 
-      const currentIndex = playlist.findIndex(
-        (track) => track.temporaryId === removedTrackId
-      );
+    const currentIndex = playlist.findIndex(
+      (track) => track.temporaryId === removedTrackId
+    );
 
-      if (currentIndex < playlist.length - 1) {
-        return playlist[currentIndex + 1];
-      }
+    if (currentIndex < playlist.length - 1) {
+      return playlist[currentIndex + 1];
+    }
 
-      return playlist[0];
-    },
-    [currentTrack, playlist]
-  );
+    return playlist[0];
+  };
 
-  const removeFromPlaylist = useCallback(
-    (temporaryId: string) => {
-      setPlaylist(playlist.filter((item) => item.temporaryId !== temporaryId));
-    },
-    [playlist, setPlaylist]
-  );
+  const removeFromPlaylist = (temporaryId: string) => {
+    setPlaylist(playlist.filter((item) => item.temporaryId !== temporaryId));
+  };
 
-  const handleAddToPlaylist = useCallback(
-    (
-      tracks: Tables<"tracks"> | Tables<"tracks">[],
-      resetPlaylist?: boolean
-    ) => {
-      const tracksArray = Array.isArray(tracks) ? tracks : [tracks];
-      const newTracks = tracksArray.map((track) => ({
-        ...track,
-        temporaryId: uuidv4(),
-      })) as PlaylistItem[];
+  const handleAddToPlaylist = (
+    tracks: Tables<"tracks"> | Tables<"tracks">[],
+    resetPlaylist?: boolean
+  ) => {
+    const tracksArray = Array.isArray(tracks) ? tracks : [tracks];
+    const newTracks = tracksArray.map((track) => ({
+      ...track,
+      temporaryId: uuidv4(),
+    })) as PlaylistItem[];
 
-      if (resetPlaylist) {
-        setPlaylist(newTracks);
-        return newTracks;
-      }
-
-      setPlaylist([...playlist, ...newTracks]);
-
+    if (resetPlaylist) {
+      setPlaylist(newTracks);
       return newTracks;
-    },
-    [playlist, setPlaylist]
-  );
+    }
 
-  const handleRemoveFromPlaylist = useCallback(
-    (temporaryId: string) => {
-      if (temporaryId === currentTrack?.temporaryId) {
-        const nextTrack = findNextTrack(temporaryId);
+    setPlaylist([...playlist, ...newTracks]);
 
-        if (nextTrack) {
-          removeFromPlaylist(temporaryId);
-          setCurrentTrack(nextTrack);
-        } else {
-          setCurrentTrack(null);
-          setCurrentTime(0);
-          removeFromPlaylist(temporaryId);
-        }
+    return newTracks;
+  };
+
+  const handleRemoveFromPlaylist = (temporaryId: string) => {
+    if (temporaryId === currentTrack?.temporaryId) {
+      const nextTrack = findNextTrack(temporaryId);
+
+      if (nextTrack) {
+        removeFromPlaylist(temporaryId);
+        setCurrentTrack(nextTrack);
       } else {
+        setCurrentTrack(null);
+        setCurrentTime(0);
         removeFromPlaylist(temporaryId);
       }
-    },
-    [
-      currentTrack,
-      findNextTrack,
-      removeFromPlaylist,
-      setCurrentTrack,
-      setCurrentTime,
-    ]
-  );
+    } else {
+      removeFromPlaylist(temporaryId);
+    }
+  };
 
-  const handleClearPlaylist = useCallback(() => {
+  const handleClearPlaylist = () => {
     setPlaylist([]);
     setCurrentTrack(null);
-  }, [setPlaylist, setCurrentTrack]);
+  };
 
-  const handleTogglePlaylistIsOpen = useCallback(() => {
+  const handleTogglePlaylistIsOpen = () => {
     setPlaylistIsOpen(!playlistIsOpen);
-  }, [setPlaylistIsOpen, playlistIsOpen]);
+  };
 
   return {
     handleAddToPlaylist,

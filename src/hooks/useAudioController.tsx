@@ -6,7 +6,7 @@ import usePlaybackController from "@/hooks/usePlaybackController";
 import usePlaylistController from "@/hooks/usePlaylistController";
 
 import { useGlobalAudioPlayer } from "react-use-audio-player";
-import { useCallback, useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import useAudioStore from "@/store/audioStore";
 
 const UPDATE_TIME_INTERVAL = 500 as const;
@@ -54,18 +54,21 @@ export default function useAudioController() {
   const { duration, playing, volume, isLoading, isReady, load, getPosition } =
     useGlobalAudioPlayer();
 
-  const updateCurrentTime = useCallback(() => {
+  const updateCurrentTime = () => {
     if (!isSeekingRef.current) {
       const currentTimeNow = parseFloat(getPosition().toFixed(2));
       setCurrentTime(currentTimeNow);
     }
-  }, [isSeekingRef, getPosition, setCurrentTime]);
+  };
 
   useEffect(() => {
-    if (
-      currentTrack &&
-      currentTrackRef.current?.temporaryId !== currentTrack.temporaryId
-    ) {
+    loopRef.current = loop;
+    playlistRef.current = playlist;
+    currentTrackRef.current = currentTrack;
+  }, [loop, playlist, currentTrack]);
+
+  useEffect(() => {
+    if (currentTrack) {
       let intervalId: NodeJS.Timeout;
 
       load(currentTrack.file_url, {
@@ -76,8 +79,6 @@ export default function useAudioController() {
         },
         onend: handleNextTrack,
       });
-
-      currentTrackRef.current = currentTrack;
 
       return () => {
         if (intervalId) {
@@ -93,77 +94,47 @@ export default function useAudioController() {
     handleNextTrack,
   ]);
 
-  const handler = useMemo(
-    () => ({
-      duration,
-      playing,
-      volume,
-      isLoading,
-      isReady,
-      currentTime,
-      setCurrentTime,
-      seekTime,
-      setSeekTime,
-      isSeeking,
-      setIsSeeking,
-      loop,
-      setLoop,
-      trigger,
-      setTrigger,
-      playlist,
-      setPlaylist,
-      playlistIsOpen,
-      setPlaylistIsOpen,
-      currentTrack,
-      setCurrentTrack,
-      currentTrackRef,
-      isSeekingRef,
-      playlistRef,
-      loopRef,
-      handleTimeChange,
-      handleSeekStart,
-      handleSeekEnd,
-      handlePlayPause,
-      handleNextTrack,
-      handlePreviousTrack,
-      handleSkipForward,
-      handleSkipBackward,
-      handleVolumeChange,
-      handleLoopChange,
-      handleAddToPlaylist,
-      handleRemoveFromPlaylist,
-      handleClearPlaylist,
-      handleTogglePlaylistIsOpen,
-    }),
-    [
-      duration,
-      playing,
-      volume,
-      isLoading,
-      isReady,
-      playlistIsOpen,
-      loop,
-      trigger,
-      playlist,
-      currentTrack,
-      currentTime,
-      seekTime,
-      handleTimeChange,
-      handleSeekStart,
-      handleSeekEnd,
-      handlePlayPause,
-      handleNextTrack,
-      handlePreviousTrack,
-      handleSkipForward,
-      handleSkipBackward,
-      handleVolumeChange,
-      handleLoopChange,
-      handleAddToPlaylist,
-      handleRemoveFromPlaylist,
-      handleClearPlaylist,
-      handleTogglePlaylistIsOpen,
-    ]
-  );
+  const handler = {
+    duration,
+    playing,
+    volume,
+    isLoading,
+    isReady,
+    currentTime,
+    setCurrentTime,
+    seekTime,
+    setSeekTime,
+    isSeeking,
+    setIsSeeking,
+    loop,
+    setLoop,
+    trigger,
+    setTrigger,
+    playlist,
+    setPlaylist,
+    playlistIsOpen,
+    setPlaylistIsOpen,
+    currentTrack,
+    setCurrentTrack,
+    currentTrackRef,
+    isSeekingRef,
+    playlistRef,
+    loopRef,
+    handleTimeChange,
+    handleSeekStart,
+    handleSeekEnd,
+    handlePlayPause,
+    handleNextTrack,
+    handlePreviousTrack,
+    handleSkipForward,
+    handleSkipBackward,
+    handleVolumeChange,
+    handleLoopChange,
+    handleAddToPlaylist,
+    handleRemoveFromPlaylist,
+    handleClearPlaylist,
+    handleTogglePlaylistIsOpen,
+  };
 
   return handler;
 }

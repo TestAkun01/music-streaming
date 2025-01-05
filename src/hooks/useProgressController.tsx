@@ -1,4 +1,3 @@
-import { useCallback } from "react";
 import useAudioStore from "@/store/audioStore";
 import { useGlobalAudioPlayer } from "react-use-audio-player";
 
@@ -14,24 +13,21 @@ export default function useProgressController(): ProgressController {
 
   const { seek } = useGlobalAudioPlayer();
 
-  const handleTimeChange = useCallback(
-    (time: number) => {
-      setSeekTime(time);
-      seek(time);
-      setCurrentTime(time);
-    },
-    [setSeekTime, setCurrentTime, seek]
-  );
+  const handleTimeChange = (time: number) => {
+    setSeekTime(time);
+    seek(time);
+    setCurrentTime(time);
+  };
 
-  const handleSeekStart = useCallback(() => {
+  const handleSeekStart = () => {
     setIsSeeking(true);
     setSeekTime(currentTime);
-  }, [setIsSeeking, setSeekTime, currentTime]);
+  };
 
-  const handleSeekEnd = useCallback(() => {
+  const handleSeekEnd = () => {
     setIsSeeking(false);
     seek(seekTime);
-  }, [setIsSeeking, seek, seekTime]);
+  };
 
   return {
     handleTimeChange,

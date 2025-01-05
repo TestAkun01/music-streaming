@@ -5,7 +5,7 @@ import { Navbar } from "@/components/Navbar";
 import LeftMainComponent from "@/components/Layout/LeftMainComponent";
 import CenterMainComponent from "@/components/Layout/CenterMainComponent";
 import RightMainComponent from "@/components/Layout/RightMainComponent";
-import AudioController from "@/components/Audio/AudioController";
+import AudioController from "@/components/AudioController";
 
 const poppins = Poppins({
   variable: "--font-poppins",

@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import formatDuration from "@/utils/formatDuration";
-import { Tables } from "@/types/DatabaseType";
 
 interface CollectionInfoProps {
   name: string;

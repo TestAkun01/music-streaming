@@ -15,8 +15,8 @@ export default function LeftMainComponent() {
     <motion.div
       initial={{ width: "200px" }}
       animate={{ width: isOpen ? "200px" : "80px" }}
-      transition={{ duration: 0.5, ease: "easeInOut" }}
-      className="relative h-full overflow-hidden">
+      transition={{ duration: 0.75, ease: "easeInOut" }}
+      className="relative h-full">
       <Sidebar onToggle={handleIsOpen} isOpen={isOpen} />
     </motion.div>
   );

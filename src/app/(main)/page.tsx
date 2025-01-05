@@ -3,7 +3,7 @@
 import NavigationTabs from "@/components/Home/NavigationTabs";
 import TrackList from "@/components/Home/TrackList";
 import StatisticsGrid from "@/components/Home/StatisticCard";
-import CollectionHeader from "@/components/CollectionHeader";
+import CollectionHeader from "@/components/Home/CollectionHeader";
 
 const Home = () => {
   const statistics = {

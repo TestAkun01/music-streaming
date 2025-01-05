@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 
 import useAudioController from "@/hooks/useAudioController";
-import Playlist from "../Audio/Playlist";
+import Playlist from "@/components/Playlist";
 
 export default function RightMainComponent() {
   const { playlistIsOpen } = useAudioController();

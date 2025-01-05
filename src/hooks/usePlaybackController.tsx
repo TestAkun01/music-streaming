@@ -1,4 +1,3 @@
-import { useCallback } from "react";
 import { Tables } from "@/types/DatabaseType";
 import PlaylistItem from "@/types/PlaylistItemType";
 
@@ -41,98 +40,73 @@ export default function usePlaybackController(): PlaybackController {
   const { togglePlayPause, duration, seek } = useGlobalAudioPlayer();
   const { handleAddToPlaylist } = usePlaylistController();
 
-  const handleExternalTrack = useCallback(
-    (track: Tables<"tracks">) => {
-      const isCurrentlyPlaying = playlist.some(
-        (item) =>
-          item.file_url === track.file_url &&
-          item.temporaryId === currentTrack?.temporaryId
-      );
+  const handleExternalTrack = (track: Tables<"tracks">) => {
+    const isCurrentlyPlaying = playlist.some(
+      (item) =>
+        item.file_url === track.file_url &&
+        item.temporaryId === currentTrack?.temporaryId
+    );
 
-      if (isCurrentlyPlaying) {
-        togglePlayPause();
-        return;
-      }
+    if (isCurrentlyPlaying) {
+      togglePlayPause();
+      return;
+    }
 
-      const newTrack = handleAddToPlaylist(track, true);
-      setCurrentTrack(newTrack[0]);
-    },
-    [
-      playlist,
-      currentTrack,
-      togglePlayPause,
-      handleAddToPlaylist,
-      setCurrentTrack,
-    ]
-  );
+    const newTrack = handleAddToPlaylist(track, true);
+    setCurrentTrack(newTrack[0]);
+  };
 
-  const handlePlaylistTrack = useCallback(
-    (track: PlaylistItem) => {
-      const playlistTrack = playlist.find(
-        (item) => item.temporaryId === track.temporaryId
-      );
+  const handlePlaylistTrack = (track: PlaylistItem) => {
+    const playlistTrack = playlist.find(
+      (item) => item.temporaryId === track.temporaryId
+    );
 
-      if (playlistTrack) {
-        setCurrentTrack(playlistTrack);
-      }
-    },
-    [playlist, setCurrentTrack]
-  );
+    if (playlistTrack) {
+      setCurrentTrack(playlistTrack);
+    }
+  };
 
-  const handleCollectionTracks = useCallback(
-    (tracks: Tables<"tracks">[]) => {
-      if (!tracks.length) return;
+  const handleCollectionTracks = (tracks: Tables<"tracks">[]) => {
+    if (!tracks.length) return;
 
-      const newPlaylist = handleAddToPlaylist(tracks, true);
-      setCurrentTrack(newPlaylist[0]);
-    },
-    [handleAddToPlaylist, setCurrentTrack]
-  );
+    const newPlaylist = handleAddToPlaylist(tracks, true);
+    setCurrentTrack(newPlaylist[0]);
+  };
 
-  const handlePlayPause = useCallback(
-    (
-      playSource?: "playlist" | "external" | "collection",
-      track?: PlaylistItem | Tables<"tracks"> | Tables<"tracks">[]
-    ) => {
-      if (!playSource) {
-        togglePlayPause();
-        return;
-      }
+  const handlePlayPause = (
+    playSource?: "playlist" | "external" | "collection",
+    track?: PlaylistItem | Tables<"tracks"> | Tables<"tracks">[]
+  ) => {
+    if (!playSource) {
+      togglePlayPause();
+      return;
+    }
 
-      if (!track) return;
+    if (!track) return;
 
-      switch (playSource) {
-        case "playlist":
-          handlePlaylistTrack(track as PlaylistItem);
-          break;
-        case "external":
-          handleExternalTrack(track as Tables<"tracks">);
-          break;
-        case "collection":
-          handleCollectionTracks(track as Tables<"tracks">[]);
-          break;
-      }
-    },
-    [
-      togglePlayPause,
-      handlePlaylistTrack,
-      handleExternalTrack,
-      handleCollectionTracks,
-    ]
-  );
+    switch (playSource) {
+      case "playlist":
+        handlePlaylistTrack(track as PlaylistItem);
+        break;
+      case "external":
+        handleExternalTrack(track as Tables<"tracks">);
+        break;
+      case "collection":
+        handleCollectionTracks(track as Tables<"tracks">[]);
+        break;
+    }
+  };
 
-  const handleNextTrack = useCallback(() => {
+  const handleNextTrack = () => {
     const currentPlaylist = playlistRef.current;
     const currentLoop = loopRef.current;
     const currentTrackNow = currentTrackRef.current;
 
     if (!currentPlaylist || !currentTrackNow) return;
 
-    const currentTrackIndex = currentPlaylist?.findIndex(
+    const currentTrackIndex = currentPlaylist.findIndex(
       (item) => item.temporaryId === currentTrackNow.temporaryId
     );
-
-    if (currentTrackIndex === undefined) return;
 
     switch (currentLoop) {
       case LOOP_STATES.NO_LOOP:
@@ -152,17 +126,9 @@ export default function usePlaybackController(): PlaybackController {
         setTrigger(trigger + 1);
         break;
     }
-  }, [
-    playlistRef,
-    loopRef,
-    currentTrackRef,
-    setCurrentTrack,
-    setTrigger,
-    playlist,
-    currentTrack,
-  ]);
+  };
 
-  const handlePreviousTrack = useCallback(() => {
+  const handlePreviousTrack = () => {
     if (!currentTrack || playlist.length === 0) return;
 
     const currentTrackIndex = playlist.findIndex(
@@ -171,19 +137,19 @@ export default function usePlaybackController(): PlaybackController {
     const previousTrack =
       playlist[(currentTrackIndex - 1 + playlist.length) % playlist.length];
     setCurrentTrack(previousTrack);
-  }, [playlist, currentTrack, setCurrentTrack]);
+  };
 
-  const handleSkipForward = useCallback(() => {
+  const handleSkipForward = () => {
     const newTime = Math.min(currentTime + SKIP_DURATION, duration);
     seek(newTime);
     setCurrentTime(newTime);
-  }, [currentTime, duration, seek, setCurrentTime]);
+  };
 
-  const handleSkipBackward = useCallback(() => {
+  const handleSkipBackward = () => {
     const newTime = Math.max(currentTime - SKIP_DURATION, 0);
     seek(newTime);
     setCurrentTime(newTime);
-  }, [currentTime, seek, setCurrentTime]);
+  };
 
   return {
     handlePlayPause,
