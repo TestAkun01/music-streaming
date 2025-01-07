@@ -61,6 +61,13 @@ export type Database = {
             foreignKeyName: "fk_track_id_analytics";
             columns: ["track_id"];
             isOneToOne: false;
+            referencedRelation: "distinct_tracks";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fk_track_id_analytics";
+            columns: ["track_id"];
+            isOneToOne: false;
             referencedRelation: "tracks";
             referencedColumns: ["id"];
           },
@@ -79,18 +86,21 @@ export type Database = {
           collection_id: number;
           id: number;
           track_id: number;
+          track_order: number | null;
         };
         Insert: {
           added_at?: string | null;
           collection_id: number;
           id?: number;
           track_id: number;
+          track_order?: number | null;
         };
         Update: {
           added_at?: string | null;
           collection_id?: number;
           id?: number;
           track_id?: number;
+          track_order?: number | null;
         };
         Relationships: [
           {
@@ -98,6 +108,13 @@ export type Database = {
             columns: ["collection_id"];
             isOneToOne: false;
             referencedRelation: "collections";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fk_track_id";
+            columns: ["track_id"];
+            isOneToOne: false;
+            referencedRelation: "distinct_tracks";
             referencedColumns: ["id"];
           },
           {
@@ -177,6 +194,13 @@ export type Database = {
             foreignKeyName: "fk_track_id_comment";
             columns: ["track_id"];
             isOneToOne: false;
+            referencedRelation: "distinct_tracks";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fk_track_id_comment";
+            columns: ["track_id"];
+            isOneToOne: false;
             referencedRelation: "tracks";
             referencedColumns: ["id"];
           },
@@ -245,6 +269,13 @@ export type Database = {
           user_id?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "fk_track_id_like";
+            columns: ["track_id"];
+            isOneToOne: false;
+            referencedRelation: "distinct_tracks";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "fk_track_id_like";
             columns: ["track_id"];
@@ -378,7 +409,29 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      distinct_tracks: {
+        Row: {
+          artist_id: string | null;
+          cover_url: string | null;
+          duration: number | null;
+          file_url: string | null;
+          genre: string | null;
+          id: number | null;
+          tags: string[] | null;
+          title: string | null;
+          uploaded_at: string | null;
+          visibility: Database["public"]["Enums"]["visibility_enum"] | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "fk_artist_id";
+            columns: ["artist_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     };
     Functions: {
       [_ in never]: never;

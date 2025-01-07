@@ -45,7 +45,7 @@ const SidebarItem = ({
 }: SidebarItemProps) => {
   return (
     <li>
-      <Link href={href} className={` px-3 py-2 group`}>
+      <Link href={href} className={`px-3 py-2 group`}>
         <div className="w-7 aspect-square flex justify-center items-center">
           <SidebarIcon icon={icon} iconColor={iconColor} />
         </div>

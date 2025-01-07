@@ -1,8 +1,9 @@
+import { useCallback } from "react";
 import { Tables } from "@/types/DatabaseType";
 import PlaylistItem from "@/types/PlaylistItemType";
 import useAudioStore from "@/store/audioStore";
-
 import { v4 as uuidv4 } from "uuid";
+import { useGlobalAudioPlayer } from "react-use-audio-player";
 
 export interface PlaylistController {
   handleAddToPlaylist: (
@@ -24,70 +25,85 @@ export default function usePlaylistController(): PlaylistController {
     currentTrack,
     playlist,
   } = useAudioStore();
+  const { stop } = useGlobalAudioPlayer();
 
-  const findNextTrack = (removedTrackId: string) => {
-    if (!currentTrack || playlist.length <= 1) return null;
+  const findNextTrack = useCallback(
+    (removedTrackId: string) => {
+      if (!currentTrack || playlist.length <= 1) return null;
+      const currentIndex = playlist.findIndex(
+        (track) => track.temporaryId === removedTrackId
+      );
+      if (currentIndex < playlist.length - 1) {
+        return playlist[currentIndex + 1];
+      }
+      return playlist[0];
+    },
+    [currentTrack, playlist]
+  );
 
-    const currentIndex = playlist.findIndex(
-      (track) => track.temporaryId === removedTrackId
-    );
+  const removeFromPlaylist = useCallback(
+    (temporaryId: string) => {
+      setPlaylist(playlist.filter((item) => item.temporaryId !== temporaryId));
+    },
+    [playlist, setPlaylist]
+  );
 
-    if (currentIndex < playlist.length - 1) {
-      return playlist[currentIndex + 1];
-    }
-
-    return playlist[0];
-  };
-
-  const removeFromPlaylist = (temporaryId: string) => {
-    setPlaylist(playlist.filter((item) => item.temporaryId !== temporaryId));
-  };
-
-  const handleAddToPlaylist = (
-    tracks: Tables<"tracks"> | Tables<"tracks">[],
-    resetPlaylist?: boolean
-  ) => {
-    const tracksArray = Array.isArray(tracks) ? tracks : [tracks];
-    const newTracks = tracksArray.map((track) => ({
-      ...track,
-      temporaryId: uuidv4(),
-    })) as PlaylistItem[];
-
-    if (resetPlaylist) {
-      setPlaylist(newTracks);
+  const handleAddToPlaylist = useCallback(
+    (
+      tracks: Tables<"tracks"> | Tables<"tracks">[],
+      resetPlaylist?: boolean
+    ) => {
+      const tracksArray = Array.isArray(tracks) ? tracks : [tracks];
+      const newTracks = tracksArray.map((track) => ({
+        ...track,
+        temporaryId: uuidv4(),
+      })) as PlaylistItem[];
+      if (resetPlaylist) {
+        setPlaylist(newTracks);
+        return newTracks;
+      }
+      setPlaylist([...playlist, ...newTracks]);
       return newTracks;
-    }
+    },
+    [playlist, setPlaylist]
+  );
 
-    setPlaylist([...playlist, ...newTracks]);
-
-    return newTracks;
-  };
-
-  const handleRemoveFromPlaylist = (temporaryId: string) => {
-    if (temporaryId === currentTrack?.temporaryId) {
-      const nextTrack = findNextTrack(temporaryId);
-
-      if (nextTrack) {
-        removeFromPlaylist(temporaryId);
-        setCurrentTrack(nextTrack);
+  const handleRemoveFromPlaylist = useCallback(
+    (temporaryId: string) => {
+      if (temporaryId === currentTrack?.temporaryId) {
+        const nextTrack = findNextTrack(temporaryId);
+        if (nextTrack) {
+          removeFromPlaylist(temporaryId);
+          setCurrentTrack(nextTrack);
+        } else {
+          stop();
+          setCurrentTrack(null);
+          setCurrentTime(0);
+          removeFromPlaylist(temporaryId);
+        }
       } else {
-        setCurrentTrack(null);
-        setCurrentTime(0);
         removeFromPlaylist(temporaryId);
       }
-    } else {
-      removeFromPlaylist(temporaryId);
-    }
-  };
+    },
+    [
+      currentTrack,
+      findNextTrack,
+      removeFromPlaylist,
+      setCurrentTrack,
+      setCurrentTime,
+    ]
+  );
 
-  const handleClearPlaylist = () => {
+  const handleClearPlaylist = useCallback(() => {
+    stop();
+    setCurrentTime(0);
     setPlaylist([]);
     setCurrentTrack(null);
-  };
+  }, [setPlaylist, setCurrentTrack]);
 
-  const handleTogglePlaylistIsOpen = () => {
+  const handleTogglePlaylistIsOpen = useCallback(() => {
     setPlaylistIsOpen(!playlistIsOpen);
-  };
+  }, [setPlaylistIsOpen, playlistIsOpen]);
 
   return {
     handleAddToPlaylist,

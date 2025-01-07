@@ -8,11 +8,10 @@ const NavbarIcons = () => {
       {icons.map((Icon, index) => (
         <button
           key={index}
-          className="btn btn-circle btn-sm bg-zinc-800 hover:bg-zinc-700 border-none transition-transform 
-                     duration-300 hover:scale-110">
+          className="btn btn-circle btn-sm bg-zinc-800 group hover:bg-zinc-700 border-none hover:scale-110">
           <Icon
             size={16}
-            className="text-zinc-400 hover:text-orange-500 transition-colors duration-300"
+            className="text-zinc-400 group-hover:text-orange-500"
           />
         </button>
       ))}

@@ -1,23 +1,28 @@
 "use client";
 
-import { motion } from "framer-motion";
-
 import useAudioController from "@/hooks/useAudioController";
 import Playlist from "@/components/Playlist";
+import { useEffect, useState } from "react";
 
 export default function RightMainComponent() {
   const { playlistIsOpen } = useAudioController();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   return (
-    <motion.div
-      className="absolute right-0 top-0 h-full w-96"
-      initial={{ x: "100%", opacity: 0 }}
-      animate={{
-        x: playlistIsOpen ? "0%" : "100%",
-        opacity: playlistIsOpen ? 1 : 0,
-      }}
-      transition={{ duration: 0.75, ease: "easeInOut" }}>
+    <div
+      className={`absolute right-0 top-0 h-full w-96 transition-all duration-700 ease-in-out
+        ${
+          playlistIsOpen
+            ? "translate-x-0 opacity-100"
+            : "translate-x-full opacity-0"
+        }`}>
       <Playlist />
-    </motion.div>
+    </div>
   );
 }

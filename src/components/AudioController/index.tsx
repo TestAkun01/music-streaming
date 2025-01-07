@@ -42,7 +42,7 @@ const AudioController = () => {
   } = useAudioController();
 
   return (
-    <div className="w-full bg-zinc-950 px-6 py-3 space-y-2 absolute bottom-0">
+    <div className="w-full bg-zinc-950 px-6 py-3 space-y-2">
       <div className="flex items-center gap-4 flex-grow">
         <span className="text-gray-50 text-sm">
           {currentTime ? formatTime(currentTime) : "00:00"}
@@ -131,24 +131,26 @@ const AudioController = () => {
               <SpeakerHigh weight="bold" size={24} />
             )}
           </button>
-          <Slider
-            min={0}
-            max={1}
-            step={0.01}
-            value={volume}
-            className="w-24"
-            onChange={(value) => handleVolumeChange(value as number)}
-            styles={{
-              track: { backgroundColor: "#f97316" },
-              rail: { backgroundColor: "#393E46" },
-              handle: {
-                backgroundColor: "#f97316",
-                opacity: 1,
-                border: "none",
-                boxShadow: "none",
-              },
-            }}
-          />
+          <div className="w-32">
+            <Slider
+              min={0}
+              max={1}
+              step={0.01}
+              value={volume}
+              onChange={(value) => handleVolumeChange(value as number)}
+              styles={{
+                track: { backgroundColor: "#f97316" },
+                rail: { backgroundColor: "#393E46" },
+                handle: {
+                  backgroundColor: "#f97316",
+                  opacity: 1,
+                  border: "none",
+                  boxShadow: "none",
+                },
+              }}
+            />
+          </div>
+
           <button
             className={`btn btn-sm btn-circle hover:bg-transparent bg-transparent border-none ${
               loop != 0

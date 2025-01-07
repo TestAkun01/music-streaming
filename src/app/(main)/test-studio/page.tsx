@@ -1,10 +1,10 @@
 "use client";
 
 import { createClient } from "@/utils/supabase/client";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Pencil, Trash, MusicNotes, Plus } from "@phosphor-icons/react";
-import { User, Session } from "@supabase/supabase-js";
+import { User } from "@supabase/supabase-js";
 import { Tables } from "@/types/DatabaseType";
 import { useRouter } from "next/navigation";
 
@@ -24,11 +24,8 @@ const ArtistTrackManagement: React.FC = () => {
           error: userError,
         } = await supabase.auth.getUser();
 
-        if (userError) throw userError;
-
         if (!user) {
           router.push("/login");
-          return;
         }
 
         setUser(user);
@@ -36,7 +33,7 @@ const ArtistTrackManagement: React.FC = () => {
         const { data: tracksData, error: tracksError } = await supabase
           .from("tracks")
           .select(`*`)
-          .eq("artist_id", user.id)
+          .eq("artist_id", user?.id!)
           .order("uploaded_at", { ascending: false });
 
         if (tracksError) throw tracksError;

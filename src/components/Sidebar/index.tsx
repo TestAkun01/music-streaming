@@ -1,14 +1,17 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { House } from "@phosphor-icons/react/House";
-import { ChartBar } from "@phosphor-icons/react/ChartBar";
-import { Heart } from "@phosphor-icons/react/Heart";
-import { Clock } from "@phosphor-icons/react/Clock";
-import { Calendar } from "@phosphor-icons/react/Calendar";
-import { Playlist } from "@phosphor-icons/react/Playlist";
-import { Plus } from "@phosphor-icons/react/Plus";
-import SideBarMenu from "./SidebarMenu";
+import {
+  House,
+  ChartBar,
+  Heart,
+  Clock,
+  Calendar,
+  Playlist,
+  Plus,
+  UploadSimple,
+} from "@phosphor-icons/react";
+import SideBarMenu from "./SidebarContent";
 import { MenuType } from "./shared";
 import Header from "./Header";
 import Footer from "./Footer";
@@ -20,7 +23,7 @@ const mainMenuItems: MenuType[] = [
     active: true,
     href: "/",
   },
-  { icon: Playlist, label: "Playlists" },
+  { icon: UploadSimple, label: "Upload", href: "/upload" },
   { icon: ChartBar, label: "Statistics" },
 ];
 
@@ -52,7 +55,9 @@ const Sidebar = ({
       <Header onToggle={onToggle} isOpen={isOpen} />
       <p className="divider m-0 px-3"></p>
 
-      <div className="px-3">
+      <div
+        className="px-3 flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-800
+        hover:scrollbar-thumb-zinc-700">
         <SideBarMenu listItem={mainMenuItems} isOpen={isOpen} />
         <p className="divider m-0"></p>
         <SideBarMenu listItem={yourMusicItems} isOpen={isOpen} />

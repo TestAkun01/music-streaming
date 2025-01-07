@@ -48,5 +48,6 @@ const useAudioStore = create<AudioState>((set) => ({
   setPlaylistIsOpen: (isOpen) => set({ playlistIsOpen: isOpen }),
   setCurrentTrack: (track) => set({ currentTrack: track }),
 }));
+console.log("load audioState");
 
 export default useAudioStore;

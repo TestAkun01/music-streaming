@@ -24,6 +24,7 @@ const CollectionHeader = () => {
       const query = supabase
         .from("collections")
         .select(`*, collection_tracks(tracks(*))`)
+        .eq("name", "ELEMENTS")
         .limit(1)
         .single();
       const { data: collectionData, error: collectionError } = await query;

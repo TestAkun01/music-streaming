@@ -1,306 +1,312 @@
 "use client";
-
-import { useState, useRef } from "react";
-import { motion } from "framer-motion";
+import { useState } from "react";
 import {
   UploadSimple,
-  X,
-  Image as ImageIcon,
   MusicNote,
+  Clock,
+  User,
+  VinylRecord,
+  Hash,
 } from "@phosphor-icons/react";
-import { useRouter } from "next/navigation";
+import { parseBlob } from "music-metadata";
 import { createClient } from "@/utils/supabase/client";
+import { Enums } from "@/types/DatabaseType";
+import { v4 as uuidv4 } from "uuid";
 
-const NewTrackUpload: React.FC = () => {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+interface AudioMetadata {
+  title: string;
+  type: string;
+  size: string;
+  duration: number;
+  artist?: string;
+  genre: string[] | null;
+  album?: string;
+  track?: number | null;
+  imageUrl?: string;
+}
+
+interface CollectionType {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string;
+  type: Enums<"collection_type_enum">;
+  is_public: boolean;
+  cover_url: string | null;
+}
+
+const AudioUpload: React.FC = () => {
+  const [audioData, setAudioData] = useState<AudioMetadata | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const supabase = createClient();
-  const [formData, setFormData] = useState<{
-    title: string;
-    genre: string;
-    visibility: "Public" | "Private";
-  }>({
-    title: "",
-    genre: "",
-    visibility: "Public" as const,
-  });
 
-  const [files, setFiles] = useState<{
-    audio: File | null;
-    cover: File | null;
-    audioDuration: number;
-    audioPreview: string;
-    coverPreview: string;
-  }>({
-    audio: null,
-    cover: null,
-    audioDuration: 0,
-    audioPreview: "",
-    coverPreview: "",
-  });
-
-  const handleFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-    type: "audio" | "cover"
+  const handleAudioChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const maxSize = type === "audio" ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
+    const maxSize = 50 * 1024 * 1024;
     if (file.size > maxSize) {
-      setError(
-        `${
-          type === "audio" ? "Audio" : "Image"
-        } file is too large. Maximum size is ${maxSize / (1024 * 1024)}MB`
+      alert(
+        `Audio file is too large. Maximum size is ${maxSize / (1024 * 1024)}MB`
       );
       return;
     }
 
-    // Validate file type
-    const validTypes =
-      type === "audio"
-        ? ["audio/mpeg", "audio/wav", "audio/mp3"]
-        : ["image/jpeg", "image/png", "image/jpg"];
+    const validTypes = ["audio/mpeg", "audio/wav", "audio/mp3"] as const;
+    type ValidAudioType = (typeof validTypes)[number];
 
-    if (!validTypes.includes(file.type)) {
-      setError(
-        `Invalid ${type} file type. Supported formats: ${validTypes.join(", ")}`
+    if (!validTypes.includes(file.type as ValidAudioType)) {
+      alert(
+        `Invalid audio file type. Supported formats: ${validTypes.join(", ")}`
       );
       return;
     }
-
-    const preview = URL.createObjectURL(file);
-
-    if (type === "audio") {
-      // Get audio duration
-      const audio = new Audio(preview);
-      audio.addEventListener("loadedmetadata", () => {
-        setFiles((prev) => ({
-          ...prev,
-          audio: file,
-          audioDuration: Math.round(audio.duration),
-          audioPreview: preview,
-        }));
-      });
-    } else {
-      setFiles((prev) => ({
-        ...prev,
-        cover: file,
-        coverPreview: preview,
-      }));
-    }
-  };
-
-  const uploadFile = async (file: File, path: string) => {
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
-    const filePath = `${path}/${fileName}`;
-
-    const { data, error } = await supabase.storage
-      .from("music-streaming")
-      .upload(filePath, file);
-
-    if (error) throw error;
-
-    return filePath;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
 
     try {
-      if (!files.audio || !files.cover) {
-        throw new Error("Please upload both audio file and cover image");
-      }
+      const metadata = await parseBlob(file);
+      const imageUrl = metadata.common.picture?.[0]?.data
+        ? URL.createObjectURL(new Blob([metadata.common.picture[0].data]))
+        : undefined;
 
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-      if (userError) throw userError;
-      if (!user) throw new Error("No user logged in");
+      setAudioData({
+        title: metadata.common.title || file.name,
+        type: file.type,
+        size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+        duration: Math.round(metadata.format.duration || 0),
+        genre: metadata.common.genre || null,
+        artist: metadata.common.artist,
+        album: metadata.common.album,
+        track: metadata.common.track.no || null,
+        imageUrl,
+      });
+    } catch (error) {
+      console.error("Error reading audio file:", error);
+    }
+  };
 
-      const [audioPath, coverPath] = await Promise.all([
-        uploadFile(files.audio, user.id + "/audio"),
-        uploadFile(files.cover, user.id + "/cover"),
-      ]);
+  const handleUpload = async (): Promise<void> => {
+    if (!audioData) return;
+    setIsLoading(true);
+
+    try {
+      const userResponse = await supabase.auth.getUser();
+      if (!userResponse.data.user) throw new Error("User not authenticated");
+      const userId = userResponse.data.user.id;
+
+      const audioFile =
+        document.querySelector<HTMLInputElement>("#audio-upload")?.files?.[0];
+      if (!audioFile) throw new Error("No audio file selected");
+
+      // Upload audio file
+      const { data: audioUpload, error: audioError } = await supabase.storage
+        .from("music-streaming")
+        .upload(`${userId}/audio/${uuidv4()}`, audioFile);
+
+      if (audioError) throw audioError;
 
       const audioUrl = supabase.storage
         .from("music-streaming")
-        .getPublicUrl(audioPath).data.publicUrl;
-      const coverUrl = supabase.storage
-        .from("music-streaming")
-        .getPublicUrl(coverPath).data.publicUrl;
+        .getPublicUrl(audioUpload.path).data.publicUrl;
 
-      const { error: insertError } = await supabase.from("tracks").insert({
-        title: formData.title,
-        genre: formData.genre,
-        visibility: formData.visibility,
-        file_url: audioUrl,
-        cover_url: coverUrl,
-        artist_id: user.id,
-        duration: files.audioDuration,
-      });
+      let coverUrl: string | undefined;
+      if (audioData.imageUrl) {
+        const response = await fetch(audioData.imageUrl);
+        const imageBlob = await response.blob();
+        const { data: imageUpload, error: imageError } = await supabase.storage
+          .from("music-streaming")
+          .upload(`${userId}/cover/${uuidv4()}-cover.jpg`, imageBlob);
 
-      if (insertError) throw insertError;
+        if (imageError) throw imageError;
+        coverUrl = supabase.storage
+          .from("music-streaming")
+          .getPublicUrl(imageUpload.path).data.publicUrl;
+      }
 
-      router.push("/test-studio");
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "An error occurred during upload"
-      );
+      // Create track record
+      const { data: newTrack, error: errorTrack } = await supabase
+        .from("tracks")
+        .insert([
+          {
+            title: audioData.title,
+            artist_id: userId,
+            genre: audioData.genre?.join(", "),
+            file_url: audioUrl,
+            cover_url: coverUrl,
+            duration: audioData.duration,
+            visibility: "Private" as const,
+          },
+        ])
+        .select("id")
+        .single();
+
+      if (errorTrack) throw errorTrack;
+
+      // Handle collection
+      if (audioData.album) {
+        const { data: collections } = await supabase
+          .from("collections")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("name", audioData.album);
+
+        let collectionId = collections?.[0]?.id;
+
+        if (!collectionId) {
+          const { data: newCollection, error: newCollectionError } =
+            await supabase
+              .from("collections")
+              .insert([
+                {
+                  user_id: userId,
+                  name: audioData.album,
+                  description: `Album: ${audioData.album}`,
+                  type: "Album" as Enums<"collection_type_enum">,
+                  is_public: false,
+                  cover_url: coverUrl || null,
+                },
+              ])
+              .select("id")
+              .single();
+
+          if (newCollectionError) throw newCollectionError;
+          collectionId = newCollection.id;
+        }
+
+        const { error: collectionError } = await supabase
+          .from("collection_tracks")
+          .insert([
+            {
+              collection_id: collectionId,
+              track_id: newTrack.id,
+              track_order: audioData.track || null,
+            },
+          ]);
+
+        if (collectionError) throw collectionError;
+      }
+
+      alert("Upload successful!");
+      setAudioData(null);
+    } catch (error) {
+      console.error("Upload error:", error);
+      alert("Upload failed. Please try again.");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
+  const formatDuration = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+  };
+
   return (
-    <div className="min-h-screen p-6">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-8">Upload New Track</h1>
+    <div className="min-h-screen bg-zinc-900 p-6">
+      <div className="max-w-xl mx-auto">
+        <h1 className="text-4xl font-bold text-white mb-8 text-center">
+          Upload Your Track
+        </h1>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {error && (
-            <div className="bg-red-500/10 border border-red-500 text-red-500 px-4 py-2 rounded-lg">
-              {error}
-            </div>
-          )}
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-zinc-400 mb-2">Title</label>
-              <input
-                type="text"
-                value={formData.title}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, title: e.target.value }))
-                }
-                className="w-full bg-zinc-800 text-white px-4 py-2 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-zinc-400 mb-2">Genre</label>
-              <input
-                type="text"
-                value={formData.genre}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, genre: e.target.value }))
-                }
-                className="w-full bg-zinc-800 text-white px-4 py-2 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-zinc-400 mb-2">Visibility</label>
-              <select
-                value={formData.visibility}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    visibility: e.target.value as "Public" | "Private",
-                  }))
-                }
-                className="w-full bg-zinc-800 text-white px-4 py-2 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
-                <option value="public">Public</option>
-                <option value="private">Private</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-zinc-400 mb-2">Audio File</label>
-              <div className="relative">
-                <input
-                  type="file"
-                  onChange={(e) => handleFileChange(e, "audio")}
-                  accept="audio/*"
-                  className="hidden"
-                  id="audio-upload"
-                  required
-                />
-                <label
-                  htmlFor="audio-upload"
-                  className="w-full bg-zinc-800 px-4 py-8 rounded-lg border-2 border-dashed border-zinc-700 flex flex-col items-center justify-center cursor-pointer hover:border-orange-500 transition-colors">
-                  {files.audio ? (
-                    <div className="flex items-center gap-2 text-white">
-                      <MusicNote size={24} />
-                      {files.audio.name}
-                    </div>
-                  ) : (
-                    <>
-                      <UploadSimple size={32} className="text-zinc-500 mb-2" />
-                      <span className="text-zinc-500">
-                        Click to upload audio file
-                      </span>
-                    </>
-                  )}
-                </label>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-zinc-400 mb-2">Cover Image</label>
-              <div className="relative">
-                <input
-                  type="file"
-                  onChange={(e) => handleFileChange(e, "cover")}
-                  accept="image/*"
-                  className="hidden"
-                  id="cover-upload"
-                  required
-                />
-                <label
-                  htmlFor="cover-upload"
-                  className="w-full bg-zinc-800 px-4 py-8 rounded-lg border-2 border-dashed border-zinc-700 flex flex-col items-center justify-center cursor-pointer hover:border-orange-500 transition-colors">
-                  {files.coverPreview ? (
+        <div className="card bg-zinc-800 shadow-xl">
+          <div className="card-body">
+            <input
+              type="file"
+              onChange={handleAudioChange}
+              accept="audio/*"
+              className="hidden"
+              id="audio-upload"
+            />
+            <label
+              htmlFor="audio-upload"
+              className={`w-full rounded-lg border-2 border-dashed p-8 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${
+                audioData
+                  ? "border-orange-500 bg-zinc-700/30"
+                  : "border-zinc-700 hover:border-orange-500/50 hover:bg-zinc-700/10"
+              }`}>
+              {audioData ? (
+                <div className="flex flex-col items-center gap-4">
+                  {audioData.imageUrl ? (
                     <img
-                      src={files.coverPreview}
-                      alt="Cover preview"
-                      className="w-32 h-32 object-cover rounded"
+                      src={audioData.imageUrl}
+                      alt="Album Art"
+                      className="w-32 h-32 rounded-lg object-cover shadow-lg"
                     />
                   ) : (
-                    <>
-                      <ImageIcon size={32} className="text-zinc-500 mb-2" />
-                      <span className="text-zinc-500">
-                        Click to upload cover image
-                      </span>
-                    </>
+                    <div className="w-32 h-32 rounded-lg bg-zinc-700 flex items-center justify-center">
+                      <MusicNote size={48} className="text-orange-500" />
+                    </div>
                   )}
-                </label>
+                  <div className="text-center">
+                    <p className="text-white font-semibold">
+                      {audioData.title}
+                    </p>
+                    <p className="text-zinc-400 text-sm">{audioData.type}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <UploadSimple
+                    size={48}
+                    className="text-orange-500 mx-auto mb-4"
+                  />
+                  <p className="text-zinc-300 font-medium">
+                    Drop your audio file here
+                  </p>
+                  <p className="text-zinc-500 text-sm mt-2">
+                    MP3, WAV up to 50MB
+                  </p>
+                </div>
+              )}
+            </label>
+
+            {audioData && (
+              <div className="mt-6 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2 text-zinc-300">
+                    <Clock className="text-orange-500" size={20} />
+                    <span>{formatDuration(audioData.duration)}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-zinc-300">
+                    <Hash className="text-orange-500" size={20} />
+                    <span>Track {audioData.track || "N/A"}</span>
+                  </div>
+                  {audioData.artist && (
+                    <div className="flex items-center gap-2 text-zinc-300">
+                      <User className="text-orange-500" size={20} />
+                      <span>{audioData.artist}</span>
+                    </div>
+                  )}
+                  {audioData.album && (
+                    <div className="flex items-center gap-2 text-zinc-300">
+                      <VinylRecord className="text-orange-500" size={20} />
+                      <span>{audioData.album}</span>
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  onClick={handleUpload}
+                  disabled={isLoading}
+                  className="btn btn-primary w-full bg-orange-500 hover:bg-orange-600 border-none text-white mt-6">
+                  {isLoading ? (
+                    <>
+                      <span className="loading loading-spinner"></span>
+                      Uploading...
+                    </>
+                  ) : (
+                    "Upload Track"
+                  )}
+                </button>
               </div>
-            </div>
+            )}
           </div>
-
-          <div className="flex gap-4">
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => router.push("/tracks")}
-              className="px-6 py-2 rounded-lg bg-zinc-800 text-white hover:bg-zinc-700 transition-colors">
-              Cancel
-            </motion.button>
-
-            <motion.button
-              type="submit"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              disabled={loading}
-              onClick={handleSubmit}
-              className="flex-1 px-6 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-              {loading ? "Uploading..." : "Upload Track"}
-            </motion.button>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
   );
 };
 
-export default NewTrackUpload;
+export default AudioUpload;

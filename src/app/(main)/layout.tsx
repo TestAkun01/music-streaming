@@ -28,11 +28,11 @@ export default function RootLayout({
       <body className={`${poppins.variable} antialiase  h-screen`}>
         <div className="flex h-screen bg-zinc-900">
           <LeftMainComponent />
-          <div className="flex-1 w-full h-full rounded rounded-s-[28px] bg-[linear-gradient(200deg,_rgba(255,165,0,0.05)_0%,_rgba(10,10,10,1)_30%)] overflow-hidden relative">
+          <div className="flex flex-col w-full h-full rounded rounded-s-[28px] bg-[linear-gradient(200deg,_rgba(255,165,0,0.05)_0%,_rgba(10,10,10,1)_30%)] overflow-hidden">
             <Navbar />
             <p className="divider m-0 px-6"></p>
 
-            <div className="flex overflow-hidden relative h-full">
+            <div className="flex-1 overflow-hidden relative h-full">
               <CenterMainComponent>{children}</CenterMainComponent>
               <RightMainComponent />
             </div>
