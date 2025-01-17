@@ -9,7 +9,7 @@ export default function NavigationTabs() {
       <button className="text-zinc-400 hover:text-white">Albums</button>
       <button className="text-zinc-400 hover:text-white">Streams</button>
       <button className="text-zinc-400 hover:text-white">
-        Friends' playlists
+        Friends&apos; playlists
       </button>
     </div>
   );

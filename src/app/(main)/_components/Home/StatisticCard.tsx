@@ -1,7 +1,15 @@
 "use client";
-import { Heart, MusicNoteSimple, Radio } from "@phosphor-icons/react";
+import { Heart, Icon, MusicNoteSimple, Radio } from "@phosphor-icons/react";
 
-export default function StatisticsGrid({ statistics }: any) {
+export default function StatisticsGrid({
+  statistics,
+}: {
+  statistics: {
+    likes: number | string;
+    tracks: number | string;
+    streams: number | string;
+  };
+}) {
   return (
     <div className="grid grid-cols-3 gap-4 mb-8">
       <StatCard title="LIKES" value={statistics.likes} Icon={Heart} />
@@ -15,7 +23,15 @@ export default function StatisticsGrid({ statistics }: any) {
   );
 }
 
-function StatCard({ title, value, Icon }: any) {
+function StatCard({
+  title,
+  value,
+  Icon,
+}: {
+  title: string;
+  value: string | number;
+  Icon: Icon;
+}) {
   return (
     <div className="bg-zinc-900 p-4 rounded-lg">
       <div className="flex justify-between items-center">

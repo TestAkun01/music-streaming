@@ -1,9 +1,15 @@
 "use client";
 
-import { UploadSimple, MusicNote, X, Image } from "@phosphor-icons/react";
+import {
+  UploadSimple,
+  MusicNote,
+  X,
+  Image as IconImage,
+} from "@phosphor-icons/react";
 import { useAudioUpload } from "@/hooks/useAudioUpload";
 import { useState } from "react";
 import { AudioMetadata } from "@/types/AudioMetadataType";
+import Image from "next/image";
 
 interface FormField {
   label: string;
@@ -121,15 +127,17 @@ const AudioUpload = () => {
             <div className="text-center">
               {audioData.imageUrl ? (
                 <div className="relative group w-40 h-40 mx-auto">
-                  <img
+                  <Image
                     src={audioData.imageUrl}
-                    alt="Album Art"
+                    alt={audioData.title}
+                    width={160}
+                    height={160}
                     className="rounded-lg object-cover"
                   />
                   <label
                     htmlFor="image-upload"
                     className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 rounded-lg cursor-pointer">
-                    <Image size={24} className="text-white" />
+                    <IconImage size={24} className="text-white" />
                   </label>
                 </div>
               ) : (

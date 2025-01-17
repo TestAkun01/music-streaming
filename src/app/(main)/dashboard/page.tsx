@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { UserCircle, SignOut, DotsThreeOutline } from "@phosphor-icons/react";
 import { User } from "@supabase/supabase-js";
 import Link from "next/link";
+import Image from "next/image";
 const playlists = [
   {
     id: 1,
@@ -159,9 +160,11 @@ const Dashboard = () => {
             {playlists.map((playlist) => (
               <div key={playlist.id} className="carousel-item w-48">
                 <div className="flex flex-col items-center">
-                  <img
+                  <Image
                     src={playlist.coverImage}
                     alt={playlist.name}
+                    width={192}
+                    height={192}
                     className="w-48 h-48 rounded-2xl object-cover"
                   />
                   <h3 className="mt-4 text-zinc-100 font-medium">
@@ -195,9 +198,11 @@ const Dashboard = () => {
             {recentlyPlayed.map((song) => (
               <div key={song.id} className="carousel-item w-max">
                 <div className="flex items-center gap-4">
-                  <img
+                  <Image
                     src={song.albumArt}
                     alt={song.title}
+                    width={64}
+                    height={64}
                     className="w-16 h-16 rounded-lg object-cover"
                   />
                   <div>

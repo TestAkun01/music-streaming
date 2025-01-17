@@ -15,6 +15,7 @@ import {
   getCollectionTracks,
   GroupedTracks,
 } from "@/services/Database/tracks_view";
+import Image from "next/image";
 
 const TracksList: React.FC = () => {
   const [tracks, setTracks] = useState<GroupedTracks>([]);
@@ -59,9 +60,11 @@ const TracksList: React.FC = () => {
                 className="bg-zinc-800/50 rounded-xl overflow-hidden backdrop-blur-sm transition-transform hover:scale-[1.02] hover:shadow-xl">
                 <div className="relative group">
                   {track.title ? (
-                    <img
+                    <Image
                       src={track.cover_url || ""}
                       alt={track.title || "Image"}
+                      width={180}
+                      height={180}
                       className="w-full aspect-square object-cover"
                     />
                   ) : (

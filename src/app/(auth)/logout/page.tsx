@@ -42,7 +42,7 @@ const Logout = () => {
           </h1>
 
           <p className="text-zinc-400 mb-6">
-            You'll be redirected to the login page shortly
+            You&apos;ll be redirected to the login page shortly
           </p>
 
           <div className="flex justify-center">

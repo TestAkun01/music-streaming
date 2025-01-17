@@ -20,17 +20,15 @@ export default function TrackCard({ track }: MusicCardProps) {
         <Image
           src={track.cover_url!}
           alt={track.title || "???"}
-          width={500}
-          height={500}
+          width={180}
+          height={180}
           priority={true}
           className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         <button
           onClick={() => handlePlayPause("collection", [track])}
-          className="absolute bottom-1/2 right-1/2 transform translate-x-1/2 translate-y-1/2 p-3 
-                     bg-orange-500 hover:bg-orange-600 rounded-full opacity-0 group-hover:opacity-100 
-                     transition-all duration-300 shadow-lg hover:shadow-orange-500/20">
+          className="absolute bottom-1/2 right-1/2 transform translate-x-1/2 translate-y-1/2 p-3 bg-orange-500 hover:bg-orange-600 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg hover:shadow-orange-500/20">
           {currentTrack?.id === track.id && playing ? (
             <Pause size={24} className="text-white" weight="fill" />
           ) : (

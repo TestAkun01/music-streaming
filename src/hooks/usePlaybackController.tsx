@@ -1,5 +1,4 @@
 import { RefObject, useCallback } from "react";
-import { Tables } from "@/types/DatabaseType";
 import PlaylistItem from "@/types/PlaylistItemType";
 import { useGlobalAudioPlayer } from "react-use-audio-player";
 import { Track } from "@/services/Database/tracks_view";
@@ -60,7 +59,7 @@ export default function usePlaybackController({
         setCurrentTrack(playlistTrack);
       }
     },
-    [playlist, setCurrentTrack]
+    [playlist, setCurrentTrack, currentTrack, togglePlayPause]
   );
 
   const handleCollectionTracks = useCallback(
@@ -78,7 +77,13 @@ export default function usePlaybackController({
       const newPlaylist = handleAddToPlaylist(tracks, true);
       setCurrentTrack(newPlaylist[0]);
     },
-    [playlist, handleAddToPlaylist, togglePlayPause, setCurrentTrack]
+    [
+      playlist,
+      handleAddToPlaylist,
+      togglePlayPause,
+      setCurrentTrack,
+      currentTrack?.id,
+    ]
   );
 
   const handlePlayPause = useCallback(
@@ -135,12 +140,11 @@ export default function usePlaybackController({
     }
   }, [
     playlistRef,
+    trigger,
     loopRef,
     currentTrackRef,
     setCurrentTrack,
     setTrigger,
-    playlist,
-    currentTrack,
   ]);
 
   const handlePreviousTrack = useCallback(() => {

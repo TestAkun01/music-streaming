@@ -90,6 +90,7 @@ export default function usePlaylistController({
       removeFromPlaylist,
       setCurrentTrack,
       setCurrentTime,
+      stop,
     ]
   );
 
@@ -98,7 +99,7 @@ export default function usePlaylistController({
     setCurrentTime(0);
     setPlaylist([]);
     setCurrentTrack(null);
-  }, [setPlaylist, setCurrentTrack]);
+  }, [setPlaylist, setCurrentTrack, setCurrentTime, stop]);
 
   return {
     handleAddToPlaylist,

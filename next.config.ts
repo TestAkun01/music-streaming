@@ -5,9 +5,8 @@ const withBundleAnalyzer = require("@next/bundle-analyzer")({
 });
 
 const nextConfig: NextConfig = {
-  reactStrictMode: true,
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   images: {
     remotePatterns: [
@@ -19,6 +18,8 @@ const nextConfig: NextConfig = {
         search: "",
       },
     ],
+    loader: "custom",
+    loaderFile: "./src/services/Storage/image-loader.ts",
   },
 };
 

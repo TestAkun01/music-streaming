@@ -19,11 +19,9 @@ export default function CollectionCard({ tracks }: MusicCollectionCardProps) {
       <div className="relative aspect-square w-full mb-4 overflow-hidden rounded-xl group">
         <Image
           src={tracks[0].collection.cover_url!}
-          alt={
-            tracks.map((item) => item.collection.artists).join(", ") || "???"
-          }
-          width={500}
-          height={500}
+          alt={tracks[0].collection.name || "???"}
+          width={180}
+          height={180}
           priority={true}
           className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
         />

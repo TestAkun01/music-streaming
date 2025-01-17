@@ -4,6 +4,7 @@ import { MusicNotes, Pause, Play } from "@phosphor-icons/react";
 import formatDuration from "@/utils/formatDuration";
 import useAudioController from "@/hooks/useAudioController";
 import { Track } from "@/services/Database/tracks_view";
+import Image from "next/image";
 
 interface CollectionCardProps {
   collection: Track[];
@@ -15,9 +16,11 @@ const CollectionCard: React.FC<CollectionCardProps> = ({ collection }) => {
     <div className="w-64 flex-shrink-0">
       <div className="group relative">
         {collection[0].collection.cover_url ? (
-          <img
+          <Image
             src={collection[0].collection.cover_url}
             alt={collection[0].title || "Image"}
+            width={250}
+            height={250}
             className="w-full aspect-square object-cover rounded-lg shadow-lg"
           />
         ) : (

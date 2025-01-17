@@ -17,7 +17,7 @@ const CollectionsList: React.FC = () => {
     const fetchCollections = async () => {
       setIsLoading(true);
       const user = await getUser();
-      const data = await getCollectionTracks({ artistId: user?.id! });
+      const data = await getCollectionTracks({ artistId: user?.id ?? "" });
 
       setCollections(data);
     };

@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo } from "react";
 import useAdditionalController from "@/hooks/useAdditionalController";
 import useProgressController from "@/hooks/useProgressController";
 import usePlaybackController from "@/hooks/usePlaybackController";
@@ -75,7 +75,7 @@ export default function useAudioController() {
   useEffect(() => {
     loopRef.current = loop;
     playlistRef.current = playlist;
-  }, [loop, playlist]);
+  }, [loop, playlist, loopRef, playlistRef]);
 
   useEffect(() => {
     if (currentTrack && currentTrackRef.current?.id !== currentTrack.id) {
@@ -87,7 +87,7 @@ export default function useAudioController() {
       });
       currentTrackRef.current = currentTrack;
     }
-  }, [currentTrack?.id, trigger, load, handleNextTrack]);
+  }, [currentTrack, currentTrackRef, trigger, load, handleNextTrack]);
 
   const handler = useMemo(
     () => ({
@@ -125,6 +125,14 @@ export default function useAudioController() {
       handleClearPlaylist,
     }),
     [
+      isSeeking,
+      setCurrentTime,
+      setCurrentTrack,
+      setIsSeeking,
+      setLoop,
+      setPlaylist,
+      setSeekTime,
+      setTrigger,
       duration,
       playing,
       volume,

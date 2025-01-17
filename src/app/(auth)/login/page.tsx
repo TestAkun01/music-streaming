@@ -2,7 +2,7 @@
 
 import { createClient } from "@/utils/supabase/client";
 import { useState } from "react";
-import { Provider } from "@supabase/supabase-js";
+import { AuthError, Provider } from "@supabase/supabase-js";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   GoogleLogo,
@@ -28,7 +28,7 @@ const Login = () => {
     setLoading(true);
     setError("");
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo:
@@ -36,8 +36,10 @@ const Login = () => {
         },
       });
       if (error) throw error;
-    } catch (error: any) {
-      setError(error.message || "An error occurred during sign in");
+    } catch (error) {
+      setError(
+        (error as AuthError).message || "An error occurred during sign in"
+      );
     } finally {
       setLoading(false);
     }
@@ -61,8 +63,8 @@ const Login = () => {
       });
       if (error) throw error;
       if (data) router.push("/dashboard");
-    } catch (error: any) {
-      setError(error.message || "Invalid email or password");
+    } catch (error) {
+      setError((error as AuthError).message || "Invalid email or password");
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,5 @@
-import { Play, Pause, X, DotsSixVertical } from "@phosphor-icons/react";
+import { Play, Pause, X } from "@phosphor-icons/react";
 import useAudioController from "@/hooks/useAudioController";
-import { formatTime } from "@/utils/formatTime";
 import PlaylistItemType from "@/types/PlaylistItemType";
 import { useEffect, useState } from "react";
 import Image from "next/image";

@@ -27,8 +27,6 @@ const AudioController = () => {
     loop,
     handlePlayPause,
     handleLoopChange,
-    handleSeekEnd,
-    handleSeekStart,
     handleSkipBackward,
     handleSkipForward,
     handleVolumeChange,
