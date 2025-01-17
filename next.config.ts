@@ -5,9 +5,20 @@ const withBundleAnalyzer = require("@next/bundle-analyzer")({
 });
 
 const nextConfig: NextConfig = {
-  reactStrictMode: false,
+  reactStrictMode: true,
   eslint: {
     ignoreDuringBuilds: true,
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "umnjqrkzfftphwhddgbr.supabase.co",
+        port: "",
+        pathname: "/storage/v1/object/public/music-streaming/**",
+        search: "",
+      },
+    ],
   },
 };
 

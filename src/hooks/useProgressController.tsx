@@ -1,14 +1,27 @@
 import { useCallback } from "react";
-import useAudioStore from "@/store/audioStore";
 import { useGlobalAudioPlayer } from "react-use-audio-player";
+
 export interface ProgressController {
   handleTimeChange: (time: number) => void;
   handleSeekStart: () => void;
   handleSeekEnd: () => void;
 }
-export default function useProgressController(): ProgressController {
-  const { setSeekTime, setCurrentTime, setIsSeeking, currentTime, seekTime } =
-    useAudioStore();
+
+interface Props {
+  currentTime: number;
+  seekTime: number;
+  setSeekTime: (time: number) => void;
+  setCurrentTime: (time: number) => void;
+  setIsSeeking: (isSeeking: boolean) => void;
+}
+
+export default function useProgressController({
+  currentTime,
+  seekTime,
+  setSeekTime,
+  setCurrentTime,
+  setIsSeeking,
+}: Props): ProgressController {
   const { seek } = useGlobalAudioPlayer();
 
   const handleTimeChange = useCallback(

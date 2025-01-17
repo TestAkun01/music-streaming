@@ -1,20 +1,15 @@
-import { useCallback } from "react";
+import { RefObject, useCallback } from "react";
 import { Tables } from "@/types/DatabaseType";
 import PlaylistItem from "@/types/PlaylistItemType";
 import { useGlobalAudioPlayer } from "react-use-audio-player";
-import useAudioStore from "@/store/audioStore";
-import usePlaylistController from "./usePlaylistController";
-const LOOP_STATES = {
-  NO_LOOP: 0,
-  LOOP_PLAYLIST: 1,
-  LOOP_TRACK: 2,
-} as const;
+import { Track } from "@/services/Database/tracks_view";
+
 const SKIP_DURATION = 5 as const;
 
 export interface PlaybackController {
   handlePlayPause: (
-    playSource?: "playlist" | "external" | "collection",
-    track?: PlaylistItem | Tables<"tracks"> | Tables<"tracks">[]
+    playSource?: "playlist" | "collection",
+    track?: PlaylistItem | Track[]
   ) => void;
   handleNextTrack: () => void;
   handlePreviousTrack: () => void;
@@ -22,50 +17,45 @@ export interface PlaybackController {
   handleSkipBackward: () => void;
 }
 
-export default function usePlaybackController(): PlaybackController {
-  const {
-    playlist,
-    currentTrack,
-    setCurrentTrack,
-    playlistRef,
-    loopRef,
-    currentTrackRef,
-    trigger,
-    setTrigger,
-    currentTime,
-    setCurrentTime,
-  } = useAudioStore();
-  const { togglePlayPause, duration, seek } = useGlobalAudioPlayer();
-  const { handleAddToPlaylist } = usePlaylistController();
+interface Props {
+  playlist: PlaylistItem[];
+  currentTrack: PlaylistItem | null;
+  setCurrentTrack: (track: PlaylistItem) => void;
+  playlistRef: RefObject<PlaylistItem[] | null>;
+  loopRef: RefObject<number | null>;
+  currentTrackRef: RefObject<PlaylistItem | null>;
+  trigger: number;
+  setTrigger: (trigger: number) => void;
+  currentTime: number;
+  setCurrentTime: (currentTime: number) => void;
+  handleAddToPlaylist: (
+    tracks: Track[],
+    resetPlaylist?: boolean
+  ) => PlaylistItem[];
+}
 
-  const handleExternalTrack = useCallback(
-    (track: Tables<"tracks">) => {
-      const isCurrentlyPlaying = playlist.some(
-        (item) =>
-          item.file_url === track.file_url &&
-          item.temporaryId === currentTrack?.temporaryId
-      );
-      if (isCurrentlyPlaying) {
-        togglePlayPause();
-        return;
-      }
-      const newTrack = handleAddToPlaylist(track, true);
-      setCurrentTrack(newTrack[0]);
-    },
-    [
-      playlist,
-      currentTrack,
-      togglePlayPause,
-      handleAddToPlaylist,
-      setCurrentTrack,
-    ]
-  );
+export default function usePlaybackController({
+  playlist,
+  currentTrack,
+  setCurrentTrack,
+  playlistRef,
+  loopRef,
+  currentTrackRef,
+  trigger,
+  setTrigger,
+  currentTime,
+  setCurrentTime,
+  handleAddToPlaylist,
+}: Props): PlaybackController {
+  const { togglePlayPause, duration, seek } = useGlobalAudioPlayer();
 
   const handlePlaylistTrack = useCallback(
     (track: PlaylistItem) => {
-      const playlistTrack = playlist.find(
-        (item) => item.temporaryId === track.temporaryId
-      );
+      const playlistTrack = playlist.find((item) => item.id === track.id);
+      if (playlistTrack === currentTrack) {
+        togglePlayPause();
+        return;
+      }
       if (playlistTrack) {
         setCurrentTrack(playlistTrack);
       }
@@ -74,71 +64,71 @@ export default function usePlaybackController(): PlaybackController {
   );
 
   const handleCollectionTracks = useCallback(
-    (tracks: Tables<"tracks">[]) => {
-      if (!tracks.length) return;
+    (tracks: Track[]) => {
+      const playlistTrack = playlist.find(
+        (item) =>
+          item.collection.id === tracks[0].collection.id &&
+          item.id === currentTrack?.id
+      );
+      if (playlistTrack) {
+        togglePlayPause();
+        return;
+      }
+
       const newPlaylist = handleAddToPlaylist(tracks, true);
       setCurrentTrack(newPlaylist[0]);
     },
-    [handleAddToPlaylist, setCurrentTrack]
+    [playlist, handleAddToPlaylist, togglePlayPause, setCurrentTrack]
   );
 
   const handlePlayPause = useCallback(
     (
-      playSource?: "playlist" | "external" | "collection",
-      track?: PlaylistItem | Tables<"tracks"> | Tables<"tracks">[]
+      playSource?: "playlist" | "collection",
+      track?: PlaylistItem | Track[]
     ) => {
-      if (!playSource) {
+      if (!playSource || !track) {
         togglePlayPause();
         return;
       }
-      if (!track) return;
       switch (playSource) {
         case "playlist":
           handlePlaylistTrack(track as PlaylistItem);
           break;
-        case "external":
-          handleExternalTrack(track as Tables<"tracks">);
-          break;
         case "collection":
-          handleCollectionTracks(track as Tables<"tracks">[]);
+          handleCollectionTracks(track as Track[]);
           break;
       }
     },
-    [
-      togglePlayPause,
-      handlePlaylistTrack,
-      handleExternalTrack,
-      handleCollectionTracks,
-    ]
+    [togglePlayPause, handlePlaylistTrack, handleCollectionTracks]
   );
 
   const handleNextTrack = useCallback(() => {
-    const currentPlaylist = playlistRef.current;
-    const currentLoop = loopRef.current;
+    const currentPlaylist = playlistRef?.current;
+    const currentLoop = loopRef?.current;
     const currentTrackNow = currentTrackRef.current;
 
     if (!currentPlaylist || !currentTrackNow) return;
 
     const currentTrackIndex = currentPlaylist?.findIndex(
-      (item) => item.temporaryId === currentTrackNow.temporaryId
+      (item) => item.id === currentTrackNow.id
     );
 
     if (currentTrackIndex === undefined) return;
 
     switch (currentLoop) {
-      case LOOP_STATES.NO_LOOP:
+      case 0:
         if (currentTrackIndex < currentPlaylist?.length - 1) {
           setCurrentTrack(currentPlaylist[currentTrackIndex + 1]);
           setTrigger(trigger + 1);
         }
         break;
-      case LOOP_STATES.LOOP_PLAYLIST:
+      case 1:
         setCurrentTrack(
           currentPlaylist[(currentTrackIndex + 1) % currentPlaylist.length]
         );
         setTrigger(trigger + 1);
         break;
-      case LOOP_STATES.LOOP_TRACK:
+      case 2:
         setCurrentTrack(currentTrackNow);
         setTrigger(trigger + 1);
         break;
@@ -157,7 +147,7 @@ export default function usePlaybackController(): PlaybackController {
     if (!currentTrack || playlist.length === 0) return;
 
     const currentTrackIndex = playlist.findIndex(
-      (item) => item.temporaryId === currentTrack.temporaryId
+      (item) => item.id === currentTrack.id
     );
 
     const previousTrack =

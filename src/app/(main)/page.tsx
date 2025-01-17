@@ -1,9 +1,9 @@
-"use client";
-
-import NavigationTabs from "@/components/Home/NavigationTabs";
-import TrackList from "@/components/Home/TrackList";
-import StatisticsGrid from "@/components/Home/StatisticCard";
-import CollectionHeader from "@/components/Home/CollectionHeader";
+import StatisticsGrid from "@/app/(main)/_components/Home/StatisticCard";
+import TrackCarousel from "./_components/Home/TrackCarousel";
+import CollectionCarousel from "./_components/Home/CollectionCarousel";
+import { Suspense } from "react";
+import CardSkeleton from "./_components/Home/CardSkeleton";
+import NavigationTabs from "./_components/Home/NavigationTabs";
 
 const Home = () => {
   const statistics = {
@@ -14,9 +14,11 @@ const Home = () => {
 
   return (
     <div className="p-6">
-      <CollectionHeader />
       <NavigationTabs />
-      <TrackList />
+      <Suspense fallback={<CardSkeleton />}>
+        <TrackCarousel />
+        <CollectionCarousel />
+      </Suspense>
       <StatisticsGrid statistics={statistics} />
     </div>
   );

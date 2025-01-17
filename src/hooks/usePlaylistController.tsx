@@ -1,37 +1,40 @@
 import { useCallback } from "react";
-import { Tables } from "@/types/DatabaseType";
 import PlaylistItem from "@/types/PlaylistItemType";
-import useAudioStore from "@/store/audioStore";
 import { v4 as uuidv4 } from "uuid";
 import { useGlobalAudioPlayer } from "react-use-audio-player";
+import { Track } from "@/services/Database/tracks_view";
 
 export interface PlaylistController {
   handleAddToPlaylist: (
-    tracks: Tables<"tracks"> | Tables<"tracks">[],
+    tracks: Track[],
     resetPlaylist?: boolean
   ) => PlaylistItem[];
-  handleRemoveFromPlaylist: (temporaryId: string) => void;
+  handleRemoveFromPlaylist: (id: number) => void;
   handleClearPlaylist: () => void;
-  handleTogglePlaylistIsOpen: () => void;
 }
 
-export default function usePlaylistController(): PlaylistController {
-  const {
-    setPlaylist,
-    setCurrentTrack,
-    setCurrentTime,
-    setPlaylistIsOpen,
-    playlistIsOpen,
-    currentTrack,
-    playlist,
-  } = useAudioStore();
+interface Props {
+  playlist: PlaylistItem[];
+  currentTrack: PlaylistItem | null;
+  setPlaylist: (playlist: PlaylistItem[]) => void;
+  setCurrentTrack: (track: PlaylistItem | null) => void;
+  setCurrentTime: (time: number) => void;
+}
+
+export default function usePlaylistController({
+  playlist,
+  currentTrack,
+  setPlaylist,
+  setCurrentTrack,
+  setCurrentTime,
+}: Props): PlaylistController {
   const { stop } = useGlobalAudioPlayer();
 
   const findNextTrack = useCallback(
-    (removedTrackId: string) => {
+    (removedTrackId: number) => {
       if (!currentTrack || playlist.length <= 1) return null;
       const currentIndex = playlist.findIndex(
-        (track) => track.temporaryId === removedTrackId
+        (track) => track.id === removedTrackId
       );
       if (currentIndex < playlist.length - 1) {
         return playlist[currentIndex + 1];
@@ -42,22 +45,18 @@ export default function usePlaylistController(): PlaylistController {
   );
 
   const removeFromPlaylist = useCallback(
-    (temporaryId: string) => {
-      setPlaylist(playlist.filter((item) => item.temporaryId !== temporaryId));
+    (id: number) => {
+      setPlaylist(playlist.filter((item) => item.id !== id));
     },
     [playlist, setPlaylist]
   );
 
   const handleAddToPlaylist = useCallback(
-    (
-      tracks: Tables<"tracks"> | Tables<"tracks">[],
-      resetPlaylist?: boolean
-    ) => {
-      const tracksArray = Array.isArray(tracks) ? tracks : [tracks];
-      const newTracks = tracksArray.map((track) => ({
+    (tracks: Track[], resetPlaylist?: boolean) => {
+      const newTracks = tracks.map((track) => ({
         ...track,
-        temporaryId: uuidv4(),
-      })) as PlaylistItem[];
+        playlist_id: uuidv4(),
+      }));
       if (resetPlaylist) {
         setPlaylist(newTracks);
         return newTracks;
@@ -69,20 +68,20 @@ export default function usePlaylistController(): PlaylistController {
   );
 
   const handleRemoveFromPlaylist = useCallback(
-    (temporaryId: string) => {
-      if (temporaryId === currentTrack?.temporaryId) {
-        const nextTrack = findNextTrack(temporaryId);
+    (id: number) => {
+      if (id === currentTrack?.id) {
+        const nextTrack = findNextTrack(id);
         if (nextTrack) {
-          removeFromPlaylist(temporaryId);
+          removeFromPlaylist(id);
           setCurrentTrack(nextTrack);
         } else {
           stop();
           setCurrentTrack(null);
           setCurrentTime(0);
-          removeFromPlaylist(temporaryId);
+          removeFromPlaylist(id);
         }
       } else {
-        removeFromPlaylist(temporaryId);
+        removeFromPlaylist(id);
       }
     },
     [
@@ -101,14 +100,9 @@ export default function usePlaylistController(): PlaylistController {
     setCurrentTrack(null);
   }, [setPlaylist, setCurrentTrack]);
 
-  const handleTogglePlaylistIsOpen = useCallback(() => {
-    setPlaylistIsOpen(!playlistIsOpen);
-  }, [setPlaylistIsOpen, playlistIsOpen]);
-
   return {
     handleAddToPlaylist,
     handleRemoveFromPlaylist,
     handleClearPlaylist,
-    handleTogglePlaylistIsOpen,
   };
 }
