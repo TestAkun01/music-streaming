@@ -19,8 +19,9 @@ const CollectionCard: React.FC<CollectionCardProps> = ({ collection }) => {
           <Image
             src={collection[0].collection.cover_url}
             alt={collection[0].title || "Image"}
-            width={250}
-            height={250}
+            width={200}
+            height={200}
+            quality={50}
             className="w-full aspect-square object-cover rounded-lg shadow-lg"
           />
         ) : (

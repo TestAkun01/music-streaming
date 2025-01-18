@@ -18,8 +18,6 @@ const nextConfig: NextConfig = {
         search: "",
       },
     ],
-    loader: "custom",
-    loaderFile: "./src/services/Storage/image-loader.ts",
   },
 };
 

@@ -36,8 +36,9 @@ export default function PlaylistItem({ track }: { track: PlaylistItemType }) {
           <Image
             src={track.cover_url || "/api/placeholder/48/48"}
             alt={track.title || "Song Thumbnail"}
-            width={500}
-            height={500}
+            width={56}
+            height={56}
+            quality={50}
             className={`w-14 h-14 object-cover rounded-md group-hover:brightness-75 transition-all ${
               isActive ? "brightness-75" : ""
             }`}
