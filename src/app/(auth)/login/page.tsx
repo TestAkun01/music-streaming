@@ -31,8 +31,7 @@ const Login = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo:
-            "http://localhost:3000/api/auth/callback/?next=/dashboard",
+          redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/callback/?next=/dashboard`,
         },
       });
       if (error) throw error;
