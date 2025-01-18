@@ -2,6 +2,8 @@ import { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import React from "react";
 import "@/styles/globals.css";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
@@ -21,6 +23,7 @@ export default function AuthLayout({
   return (
     <html lang="en">
       <body className={`${poppins.variable}`}>
+        <SpeedInsights />
         <main>{children}</main>
       </body>
     </html>

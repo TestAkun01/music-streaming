@@ -6,6 +6,7 @@ import Sidebar from "./_components/Sidebar";
 import Playlist from "./_components/Playlist";
 import CenterMainComponent from "@/app/(main)/_components/CenterMainComponent";
 import AudioController from "@/app/(main)/_components/AudioController";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -26,6 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${poppins.variable} antialiase  h-screen`}>
+        <SpeedInsights />
         <div className="flex h-screen bg-zinc-900">
           <Sidebar />
           <div className="flex flex-col w-full h-full rounded rounded-s-[28px] bg-zinc-950 overflow-hidden">
