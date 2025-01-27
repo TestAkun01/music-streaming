@@ -2,16 +2,18 @@
 
 import { MusicNotes, Pause, Play } from "@phosphor-icons/react";
 import formatDuration from "@/utils/formatDuration";
-import useAudioController from "@/hooks/useAudioController";
 import { Track } from "@/services/Database/tracks_view";
 import Image from "next/image";
+import useAudioPlayerStore from "@/stores/useAudioPlayerStore";
+import { useGlobalAudioPlayer } from "react-use-audio-player";
 
 interface CollectionCardProps {
   collection: Track[];
 }
 
 const CollectionCard: React.FC<CollectionCardProps> = ({ collection }) => {
-  const { handlePlayPause, currentTrack } = useAudioController();
+  const { handlePlayCollection, currentTrack } = useAudioPlayerStore();
+  const { togglePlayPause, playing } = useGlobalAudioPlayer();
   return (
     <div className="w-64 flex-shrink-0">
       <div className="group relative">
@@ -32,8 +34,15 @@ const CollectionCard: React.FC<CollectionCardProps> = ({ collection }) => {
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
           <button
             className="bg-orange-500 p-3 rounded-full transform transition-transform hover:scale-110"
-            onClick={() => handlePlayPause("collection", collection)}>
-            {currentTrack?.collection.id === collection[0].collection.id ? (
+            onClick={() => {
+              if (currentTrack?.collection.id === collection[0].collection.id) {
+                togglePlayPause();
+              } else {
+                handlePlayCollection(collection);
+              }
+            }}>
+            {currentTrack?.collection.id === collection[0].collection.id &&
+            playing ? (
               <Pause size={24} className="text-white" weight="fill" />
             ) : (
               <Play size={24} className="text-white" weight="fill" />

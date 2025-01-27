@@ -11,21 +11,19 @@ import { SpeakerLow } from "@phosphor-icons/react/SpeakerLow";
 import { SpeakerHigh } from "@phosphor-icons/react/SpeakerHigh";
 import { Rewind } from "@phosphor-icons/react/Rewind";
 import { FastForward } from "@phosphor-icons/react/FastForward";
-import useAudioController from "@/hooks/useAudioController";
 import { Playlist } from "@phosphor-icons/react/Playlist";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import ProgressComponent from "./ProgressComponent";
-import usePlaylistStore from "../../_store/playlistStore";
+import usePlaylistStore from "../../../../stores/usePlaylistComponentStore";
+import { useAudioController } from "@/stores/useAudioPlayerStore";
+import { useGlobalAudioPlayer } from "react-use-audio-player";
+import { AudioPlayerClient } from "@/hooks/useAudioController";
 
 const AudioController = () => {
   const {
-    playing,
-    volume,
-    isLoading,
     currentTrack,
     loop,
-    handlePlayPause,
     handleLoopChange,
     handleSkipBackward,
     handleSkipForward,
@@ -33,10 +31,14 @@ const AudioController = () => {
     handleNextTrack,
     handlePreviousTrack,
   } = useAudioController();
+  const { playing, togglePlayPause, isLoading, volume } =
+    useGlobalAudioPlayer();
   const { playlistIsOpen, handlePlaylistIsOpen } = usePlaylistStore();
 
   return (
     <div className="w-full bg-zinc-950 px-6 py-3 space-y-2">
+      <AudioPlayerClient />
+
       <div className="flex items-center gap-4 flex-grow">
         {<ProgressComponent />}
       </div>
@@ -65,7 +67,7 @@ const AudioController = () => {
 
           <button
             className="btn btn-circle btn-outline hover:bg-transparent text-gray-50 hover:text-gray-300"
-            onClick={() => handlePlayPause()}
+            onClick={() => togglePlayPause()}
             disabled={isLoading} // Disable tombol saat loading atau belum siap
           >
             {isLoading ? (

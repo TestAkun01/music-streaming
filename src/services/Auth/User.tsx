@@ -1,9 +1,21 @@
-import { createClient } from "@/utils/supabase/client";
+import { createClient as createClientBrowser } from "@/utils/supabase/client";
+import { createClient } from "@/utils/supabase/server";
 
-const supabase = createClient();
 export async function getUser() {
-  const { data, error } = await supabase.auth.getUser();
-  if (error) return null;
+  try {
+    const supabase =
+      typeof window === "undefined"
+        ? await createClient()
+        : createClientBrowser();
 
-  return data.user;
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+    if (error) throw error;
+    return user;
+  } catch (error) {
+    console.error("Error getting user:", error);
+    return null;
+  }
 }

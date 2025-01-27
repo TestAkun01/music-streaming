@@ -1,10 +1,12 @@
 import { Play, Pause, User, DotsThree } from "@phosphor-icons/react";
-import useAudioController from "@/hooks/useAudioController";
 import { formatTime } from "@/utils/formatTime";
 import { Track } from "@/services/Database/tracks_view";
+import useAudioPlayerStore from "@/stores/useAudioPlayerStore";
+import { useGlobalAudioPlayer } from "react-use-audio-player";
 
 const TrackItem = ({ track }: { track: Track }) => {
-  const { handlePlayPause, currentTrack, playing } = useAudioController();
+  const { currentTrack, handlePlayCollection } = useAudioPlayerStore();
+  const { playing, togglePlayPause } = useGlobalAudioPlayer();
   return (
     <div className="group p-3 rounded-lg bg-zinc-700/20 hover:bg-zinc-700/40 transition-all duration-200">
       <div className="flex items-center gap-4">
@@ -13,7 +15,13 @@ const TrackItem = ({ track }: { track: Track }) => {
         </div>
 
         <button
-          onClick={() => handlePlayPause("collection", [track])}
+          onClick={() => {
+            if (currentTrack?.id === track.id) {
+              togglePlayPause();
+            } else {
+              handlePlayCollection([track]);
+            }
+          }}
           className="opacity-0 group-hover:opacity-100 transition-opacity">
           {currentTrack?.id === track.id && playing ? (
             <Pause size={20} weight="fill" className="text-orange-500" />

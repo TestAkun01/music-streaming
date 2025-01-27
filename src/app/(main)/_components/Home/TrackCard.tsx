@@ -3,16 +3,18 @@
 import React from "react";
 import { Play, Pause } from "@phosphor-icons/react";
 import { formatTime } from "@/utils/formatTime";
-import useAudioController from "@/hooks/useAudioController";
 import { Track } from "@/services/Database/tracks_view";
 import Image from "next/image";
+import { useAudioController } from "@/stores/useAudioPlayerStore";
+import { useGlobalAudioPlayer } from "react-use-audio-player";
 
 interface MusicCardProps {
   track: Track;
 }
 
 export default function TrackCard({ track }: MusicCardProps) {
-  const { currentTrack, handlePlayPause, playing } = useAudioController();
+  const { currentTrack, handlePlayCollection } = useAudioController();
+  const { playing, togglePlayPause } = useGlobalAudioPlayer();
 
   return (
     <div className="w-48 group hover:bg-zinc-900/10 rounded-xl p-3 transition-all duration-300 backdrop-blur-sm">
@@ -27,7 +29,13 @@ export default function TrackCard({ track }: MusicCardProps) {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         <button
-          onClick={() => handlePlayPause("collection", [track])}
+          onClick={() => {
+            if (track.id === currentTrack?.id) {
+              togglePlayPause();
+            } else {
+              handlePlayCollection([track]);
+            }
+          }}
           className="absolute bottom-1/2 right-1/2 transform translate-x-1/2 translate-y-1/2 p-3 bg-orange-500 hover:bg-orange-600 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg hover:shadow-orange-500/20">
           {currentTrack?.id === track.id && playing ? (
             <Pause size={24} className="text-white" weight="fill" />

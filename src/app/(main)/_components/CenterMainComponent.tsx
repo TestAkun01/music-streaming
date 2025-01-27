@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
-import usePlaylistStore from "@/app/(main)/_store/playlistStore";
+import usePlaylistStore from "@/stores/usePlaylistComponentStore";
 
 export default function CenterMainComponent({
   children,

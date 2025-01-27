@@ -3,7 +3,6 @@
 import { createClient } from "@/utils/supabase/client";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import { SignOut } from "@phosphor-icons/react";
 
 const Logout = () => {
@@ -20,17 +19,9 @@ const Logout = () => {
   }, [router, supabase]);
 
   return (
-    <motion.div
-      className="min-h-screen flex items-center justify-center bg-zinc-950 p-4"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}>
+    <div className="min-h-screen flex items-center justify-center bg-zinc-950 p-4 fade-in">
       <div className="max-w-md w-full">
-        <motion.div
-          className="bg-zinc-900 rounded-2xl shadow-lg border border-zinc-800 p-8 text-center"
-          initial={{ y: 20 }}
-          animate={{ y: 0 }}
-          transition={{ duration: 0.6 }}>
+        <div className="bg-zinc-900 rounded-2xl shadow-lg border border-zinc-800 p-8 text-center slide-up">
           <div className="flex justify-center mb-4">
             <div className="p-3 bg-zinc-800 rounded-full">
               <SignOut size={32} className="text-zinc-300" />
@@ -48,9 +39,9 @@ const Logout = () => {
           <div className="flex justify-center">
             <div className="animate-spin rounded-full h-8 w-8 border-2 border-zinc-500 border-t-zinc-200" />
           </div>
-        </motion.div>
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

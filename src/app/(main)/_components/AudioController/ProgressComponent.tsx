@@ -1,11 +1,15 @@
-import useAudioController from "@/hooks/useAudioController";
 import useAudioTime from "@/hooks/useAudioTime";
+import useAudioPlayerStore, {
+  useAudioController,
+} from "@/stores/useAudioPlayerStore";
 import { formatTime } from "@/utils/formatTime";
 import Slider from "rc-slider";
 import React from "react";
+import { useGlobalAudioPlayer } from "react-use-audio-player";
 
 export default function ProgressComponent() {
-  const { duration, handleTimeChange } = useAudioController();
+  const { handleTimeChange } = useAudioController();
+  const { duration } = useGlobalAudioPlayer();
   const pos = useAudioTime();
 
   return (

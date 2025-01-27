@@ -1,11 +1,11 @@
 "use client";
 
 import { ReactSortable } from "react-sortablejs";
-import useAudioController from "@/hooks/useAudioController";
 import PlaylistEmpty from "./PlaylistEmpty";
 import PlaylistHeader from "./PlaylistHeader";
 import PlaylistItem from "./PlaylistItem";
-import usePlaylistStore from "../../_store/playlistStore";
+import usePlaylistStore from "../../../../stores/usePlaylistComponentStore";
+import { useAudioController } from "@/stores/useAudioPlayerStore";
 
 export default function Playlist() {
   const { playlist, setPlaylist } = useAudioController();

@@ -1,12 +1,14 @@
 import { Play, Pause, X } from "@phosphor-icons/react";
-import useAudioController from "@/hooks/useAudioController";
 import PlaylistItemType from "@/types/PlaylistItemType";
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useAudioController } from "@/stores/useAudioPlayerStore";
+import { useGlobalAudioPlayer } from "react-use-audio-player";
 
 export default function PlaylistItem({ track }: { track: PlaylistItemType }) {
-  const { currentTrack, playing, handlePlayPause, handleRemoveFromPlaylist } =
+  const { currentTrack, handleRemoveFromPlaylist, handlePlayFromPlaylist } =
     useAudioController();
+  const { playing, togglePlayPause } = useGlobalAudioPlayer();
   const [isFirstMount, setIsFirstMount] = useState(true);
 
   const isActive = currentTrack?.id === track.id;
@@ -29,7 +31,11 @@ export default function PlaylistItem({ track }: { track: PlaylistItemType }) {
             : "border-l-2 border-transparent"
         }`}
       onClick={() => {
-        handlePlayPause("playlist", track);
+        if (currentTrack?.playlist_id === track.playlist_id) {
+          togglePlayPause();
+        } else {
+          handlePlayFromPlaylist(track);
+        }
       }}>
       <div className="flex gap-3 items-center flex-1 min-w-0">
         <div className="relative">
@@ -69,7 +75,7 @@ export default function PlaylistItem({ track }: { track: PlaylistItemType }) {
         className="btn btn-circle btn-sm opacity-0 group-hover:opacity-100 bg-zinc-700 hover:bg-red-500 hover:text-white border-none transition-all duration-300"
         onClick={(e) => {
           e.stopPropagation();
-          handleRemoveFromPlaylist(track.id ?? "");
+          handleRemoveFromPlaylist(track.playlist_id ?? "");
         }}>
         <X className="w-4 h-4" />
       </button>

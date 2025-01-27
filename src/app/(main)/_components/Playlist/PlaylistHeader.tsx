@@ -1,8 +1,8 @@
 import { Trash } from "@phosphor-icons/react";
-import useAudioController from "@/hooks/useAudioController";
+import useAudioPlayerStore from "@/stores/useAudioPlayerStore";
 
 export default function PlaylistHeader() {
-  const { playlist, handleClearPlaylist } = useAudioController();
+  const { playlist, handleClearPlaylist } = useAudioPlayerStore();
 
   return (
     <div className="flex items-center justify-between pb-2">

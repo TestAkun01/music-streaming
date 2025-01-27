@@ -10,17 +10,19 @@ import {
   Tag,
 } from "@phosphor-icons/react";
 import formatDuration from "@/utils/formatDuration";
-import useAudioController from "@/hooks/useAudioController";
 import {
   getCollectionTracks,
   GroupedTracks,
 } from "@/services/Database/tracks_view";
 import Image from "next/image";
+import { useAudioController } from "@/stores/useAudioPlayerStore";
+import { useGlobalAudioPlayer } from "react-use-audio-player";
 
 const TracksList: React.FC = () => {
   const [tracks, setTracks] = useState<GroupedTracks>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const { playing, currentTrack, handlePlayPause } = useAudioController();
+  const { currentTrack, handlePlayCollection } = useAudioController();
+  const { playing, togglePlayPause } = useGlobalAudioPlayer();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -73,7 +75,13 @@ const TracksList: React.FC = () => {
                     </div>
                   )}
                   <button
-                    onClick={() => handlePlayPause("collection", [track])}
+                    onClick={() => {
+                      if (currentTrack?.id === track.id) {
+                        togglePlayPause();
+                      } else {
+                        handlePlayCollection([track]);
+                      }
+                    }}
                     className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     {currentTrack?.id === track.id && playing ? (
                       <Pause size={48} className="text-white" weight="fill" />

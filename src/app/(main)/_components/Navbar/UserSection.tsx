@@ -1,11 +1,10 @@
 import Link from "next/link";
-import { getUser } from "@/services/Auth/UserSSR";
+import { getUser } from "@/services/Auth/User";
 import { getProfileById } from "@/services/Database/profiles";
 import Image from "next/image";
-import { cookies } from "next/headers";
 
 const UserSection = async () => {
-  const user = await getUser(cookies());
+  const user = await getUser();
 
   if (user) {
     const profile = await getProfileById(user.id);
